@@ -1,0 +1,23 @@
+.slick-dots li button:before {
+    font-size: 10px !important;
+    color: #5D4037 !important;
+    opacity: 0.25 !important;
+}
+
+.slick-dots li.slick-active button:before {
+    color: #5D4037 !important;
+    opacity: 1 !important;
+}
+
+.slick-list {
+    margin: 0 -10px;
+}
+
+.slick-slide {
+    padding: 0 10px;
+    outline: none;
+}
+
+.slick-slide>div {
+    height: 100%;
+}

@@ -1,0 +1,33 @@
+{
+    "name": "pengu-assistant-backend",
+    "version": "1.0.0",
+    "description": "Backend for Pengu Assistant with MongoDB and Cloudinary",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js",
+        "dev": "nodemon index.js",
+        "db:reset": "node reset.js"
+    },
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "bcryptjs": "^2.4.3",
+        "cloudinary": "^1.41.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.2",
+        "express-async-handler": "^1.2.0",
+        "google-auth-library": "^10.5.0",
+        "groq-sdk": "^0.37.0",
+        "jsonwebtoken": "^9.0.2",
+        "mammoth": "^1.11.0",
+        "mongoose": "^8.2.0",
+        "multer": "^1.4.5-lts.1",
+        "multer-storage-cloudinary": "^4.0.0",
+        "pdf-parse": "^1.1.1",
+        "socket.io": "^4.7.4"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
+}
