@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, Order, Milestone } from './store';
+import { useStore, Order, Milestone, Request } from './store';
 import { useParams } from 'react-router-dom';
 import { DashboardLayout } from './components/Layout';
 import { Card } from './components/ui/card';
@@ -29,7 +29,12 @@ export default function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const { orders, requests, currentUser, reviews, submitReview, updateOrder } = useStore();
   const order = orders.find(o => o.id === id);
-  const request = requests.find(r => r.id === order?.requestId);
+  const requestIdStr = typeof order?.requestId === 'object'
+    ? (order.requestId as any)._id || (order.requestId as any).id
+    : order?.requestId;
+
+  const request = requests.find(r => r.id === requestIdStr) ||
+    (typeof order?.requestId === 'object' ? order.requestId as unknown as Request : undefined);
 
   // Review State
   const [rating, setRating] = useState(0);
