@@ -14,6 +14,7 @@ export const initSocket = (httpServer) => {
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "https://pengu-six.vercel.app",
+        "https://pengu.work.gd",
         process.env.FRONTEND_URL
     ].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
 
