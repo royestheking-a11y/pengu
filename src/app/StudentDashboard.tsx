@@ -79,38 +79,44 @@ export default function StudentDashboard() {
 
         {/* Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 border-l-4 border-l-[#5D4037]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-stone-700">Active Requests</h3>
-              <FileText className="text-[#5D4037] size-5" />
-            </div>
-            <div className="text-3xl font-bold text-[#3E2723]">{activeRequests.length}</div>
-            <p className="text-sm text-stone-500 mt-1">
-              {activeRequests.filter(r => r.status === 'QUOTED').length} awaiting approval
-            </p>
-          </Card>
+          <Link to="/student/requests">
+            <Card className="p-6 border-l-4 border-l-[#5D4037] hover:shadow-lg transition-all cursor-pointer group h-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-stone-700 group-hover:text-[#5D4037]">Active Requests</h3>
+                <FileText className="text-[#5D4037] size-5" />
+              </div>
+              <div className="text-3xl font-bold text-[#3E2723]">{activeRequests.length}</div>
+              <p className="text-sm text-stone-500 mt-1">
+                {activeRequests.filter(r => r.status === 'QUOTED').length} awaiting approval
+              </p>
+            </Card>
+          </Link>
 
-          <Card className="p-6 border-l-4 border-l-amber-500">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-stone-700">Orders in Progress</h3>
-              <Clock className="text-amber-500 size-5" />
-            </div>
-            <div className="text-3xl font-bold text-[#3E2723]">{activeOrders.length}</div>
-            <p className="text-sm text-stone-500 mt-1">
-              {activeOrders.length > 0 ? 'Managing your deadlines' : 'No active orders'}
-            </p>
-          </Card>
+          <Link to="/student/orders">
+            <Card className="p-6 border-l-4 border-l-amber-500 hover:shadow-lg transition-all cursor-pointer group h-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-stone-700 group-hover:text-amber-600">Orders in Progress</h3>
+                <Clock className="text-amber-500 size-5" />
+              </div>
+              <div className="text-3xl font-bold text-[#3E2723]">{activeOrders.length}</div>
+              <p className="text-sm text-stone-500 mt-1">
+                {activeOrders.length > 0 ? 'Managing your deadlines' : 'No active orders'}
+              </p>
+            </Card>
+          </Link>
 
-          <Card className="p-6 border-l-4 border-l-green-600">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-stone-700">Career Skills</h3>
-              <TrendingUp className="text-green-600 size-5" />
-            </div>
-            <div className="text-3xl font-bold text-[#3E2723]">{totalSkillsCount}</div>
-            <p className="text-sm text-stone-500 mt-1">
-              {totalSkillsCount > 0 ? `+${userSkills.length} recent skills` : 'No skills indexed yet'}
-            </p>
-          </Card>
+          <Link to="/student/skills">
+            <Card className="p-6 border-l-4 border-l-green-600 hover:shadow-lg transition-all cursor-pointer group h-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-stone-700 group-hover:text-green-700">Career Skills</h3>
+                <TrendingUp className="text-green-600 size-5" />
+              </div>
+              <div className="text-3xl font-bold text-[#3E2723]">{totalSkillsCount}</div>
+              <p className="text-sm text-stone-500 mt-1">
+                {totalSkillsCount > 0 ? `+${userSkills.length} recent skills` : 'No skills indexed yet'}
+              </p>
+            </Card>
+          </Link>
         </div>
 
         {/* Main Content Grid */}

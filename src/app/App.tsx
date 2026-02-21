@@ -48,6 +48,7 @@ import ExpertDashboard from './ExpertDashboard';
 import ExpertOrderDetails from './ExpertOrderDetails';
 import ExpertPayouts from './ExpertPayouts';
 import ExpertOrders from './ExpertOrders';
+import ExpertFeedback from './ExpertFeedback';
 import InvitationPage from './InvitationPage';
 import AdminCarousel from './AdminCarousel';
 import AdminContacts from './AdminContacts';
@@ -196,6 +197,7 @@ export default function App() {
             <Route path="/expert/dashboard" element={<ExpertRouteGuard><ExpertDashboard /></ExpertRouteGuard>} />
             <Route path="/expert/orders" element={<ExpertRouteGuard><ExpertOrders /></ExpertRouteGuard>} />
             <Route path="/expert/order/:id" element={<ExpertRouteGuard><ExpertOrderDetails /></ExpertRouteGuard>} />
+            <Route path="/expert/feedback" element={<ExpertRouteGuard><ExpertFeedback /></ExpertRouteGuard>} />
             <Route path="/expert/payouts" element={<ExpertRouteGuard><ExpertPayouts /></ExpertRouteGuard>} />
             <Route path="/expert/messages" element={<ExpertRouteGuard><Messages /></ExpertRouteGuard>} />
             <Route path="/expert/settings" element={<ExpertRouteGuard><Settings /></ExpertRouteGuard>} />

@@ -46,6 +46,7 @@ const MENU_ITEMS = {
   expert: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/expert/dashboard' },
     { icon: FileText, label: 'Active Orders', path: '/expert/orders' },
+    { icon: Star, label: 'Client Feedback', path: '/expert/feedback' },
     { icon: MessageSquare, label: 'Messages', path: '/expert/messages' },
     { icon: CreditCard, label: 'Payouts', path: '/expert/payouts' },
     { icon: Settings, label: 'Profile & Settings', path: '/expert/settings' },

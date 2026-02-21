@@ -199,41 +199,49 @@ export default function ExpertDashboard() {
 
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-stone-900">Recent Feedback</h3>
-                <span className="text-xs font-medium text-[#5D4037] bg-[#5D4037]/10 px-2 py-1 rounded-full">
-                  {currentExpert?.rating ? `${currentExpert.rating} Average` : 'No Ratings'}
-                </span>
+                <div className="flex flex-col">
+                  <h3 className="font-bold text-stone-900">Recent Feedback</h3>
+                  <span className="text-xs text-stone-400">Latest client reviews</span>
+                </div>
+                <Link to="/expert/feedback" className="text-xs font-bold text-[#5D4037] hover:underline">
+                  View All
+                </Link>
               </div>
               <div className="space-y-4">
-                {reviews.filter(r => ((r.expertId as any)?._id || r.expertId) === currentUser?.id).length === 0 ? (
-                  <EmptyState
-                    icon={MessageSquare}
-                    title="No feedback yet"
-                    subtitle="Complete orders to earn ratings and build your expert reputation."
-                    compact
-                    className="bg-stone-50/50 border-none py-8 shadow-none"
-                  />
-                ) : (
-                  reviews
-                    .filter(r => ((r.expertId as any)?._id || r.expertId) === currentUser?.id)
+                {(() => {
+                  const expertReviews = reviews.filter(r => ((r.expertId as any)?._id || r.expertId) === currentUser?.id);
+                  if (expertReviews.length === 0) {
+                    return (
+                      <EmptyState
+                        icon={MessageSquare}
+                        title="No feedback yet"
+                        subtitle="Complete orders to earn ratings and build your expert reputation."
+                        compact
+                        className="bg-stone-50/50 border-none py-8 shadow-none"
+                      />
+                    );
+                  }
+                  return expertReviews
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 4)
                     .map((review) => (
-                      <div key={review.id} className="pb-4 border-b border-stone-100 last:border-0 last:pb-0">
+                      <div key={review.id} className="pb-4 border-b border-stone-50 last:border-0 last:pb-0">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="flex text-amber-400 text-xs">
+                          <div className="flex text-amber-500 text-[10px] gap-0.5">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <span key={i} className={i < review.rating ? "fill-current" : "text-stone-300"}>★</span>
                             ))}
                           </div>
-                          <span className="text-[10px] text-stone-400 uppercase tracking-wide">
+                          <span className="text-[10px] text-stone-400 font-medium">
                             {safeFormatDate(review.createdAt)}
                           </span>
                         </div>
-                        <p className="text-sm text-stone-600 italic leading-snug">
+                        <p className="text-sm text-stone-700 italic leading-snug line-clamp-2">
                           "{review.text}"
                         </p>
                       </div>
-                    ))
-                )}
+                    ));
+                })()}
               </div>
             </Card>
           </div>
