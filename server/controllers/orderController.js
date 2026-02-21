@@ -4,6 +4,7 @@ import Expert from '../models/expertModel.js';
 import Transaction from '../models/transactionModel.js';
 import Request from '../models/requestModel.js';
 import Quote from '../models/quoteModel.js';
+import SystemSettings from '../models/systemModel.js';
 import { notifyAdmins } from '../utils/notificationUtils.js';
 import { getIO } from '../socket.js';
 
@@ -127,14 +128,22 @@ const updateOrder = asyncHandler(async (req, res) => {
             // Mark as processed FIRST to prevent race condition with concurrent requests
             order.payoutProcessed = true;
 
-            // 1. Calculate Expert Earnings (e.g., 85%)
-            const platformFee = 0.15;
-            const earningAmount = Math.round(order.amount * (1 - platformFee));
+            // 1. Fetch Dynamic Commission Rate
+            let commissionRate = 15;
+            try {
+                const settings = await SystemSettings.findOne();
+                if (settings) commissionRate = settings.commissionRate;
+            } catch (err) {
+                console.error("Error fetching system settings", err);
+            }
+
+            const platformFeePercent = commissionRate / 100;
+            const platformProfit = Math.round(order.amount * platformFeePercent);
+            const earningAmount = order.amount - platformProfit;
 
             // 2. Update Expert Balance
             const expert = await Expert.findOne({ userId: order.expertId });
             if (expert) {
-                // Ensure values are numbers
                 const currentBalance = Number(expert.balance) || 0;
                 const currentEarnings = (typeof expert.earnings === 'string')
                     ? parseFloat(expert.earnings.replace(/[^\d.-]/g, '')) || 0
@@ -146,7 +155,8 @@ const updateOrder = asyncHandler(async (req, res) => {
 
                 await expert.save();
 
-                // 3. Create Transaction Record
+                // 3. Create Transaction Records
+                // Expert Earnings
                 await Transaction.create({
                     orderId: order._id,
                     type: 'INCOME',
@@ -154,13 +164,25 @@ const updateOrder = asyncHandler(async (req, res) => {
                     expertId: order.expertId,
                     studentId: order.studentId,
                     description: `Earnings for Order #${order._id.toString().slice(-4)}`,
-                    status: 'completed',
-                    date: new Date()
+                    status: 'completed'
                 });
 
-                // Real-time: Notify expert and admin of balance/expert update
+                // Platform Commission
+                await Transaction.create({
+                    orderId: order._id,
+                    type: 'COMMISSION',
+                    amount: platformProfit,
+                    expertId: order.expertId, // Associate with the expert's work
+                    studentId: order.studentId,
+                    description: `Platform Fee (${commissionRate}%) for Order #${order._id.toString().slice(-4)}`,
+                    status: 'completed'
+                });
+
+                // Real-time
+                const io = getIO();
                 io.emit('expert_updated', expert);
                 io.emit('transaction_created', { amount: earningAmount, type: 'INCOME' });
+                io.emit('transaction_created', { amount: platformProfit, type: 'COMMISSION' });
             }
         }
 

@@ -537,7 +537,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
 
       const handleWithdrawalUpdate = (data: any) => {
-        if (currentUser.role === 'admin') toast.info('New Withdrawal Request received.');
+        if (currentUser.role === 'admin') {
+          api.get('/withdrawals').then(res => setWithdrawalRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
+          toast.info('Withdrawal Request updated.');
+        }
         if (currentUser.role === 'expert') {
           api.get('/withdrawals').then(res => setWithdrawalRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
         }
@@ -575,7 +578,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
 
       const handleTransactionUpdate = (data: any) => {
-        api.get('/transactions').then(res => setFinancialTransactions(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
+        const txUrl = currentUser.role === 'admin' ? '/transactions' : '/transactions'; // All same for now
+        api.get(txUrl).then(res => setFinancialTransactions(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
       };
 
       if (socket) {
