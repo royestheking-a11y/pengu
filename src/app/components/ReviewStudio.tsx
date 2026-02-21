@@ -435,7 +435,12 @@ export function ReviewStudio({ order, request, updateOrder }: ReviewStudioProps)
                             <Button
                                 size="sm"
                                 className="flex-1 sm:flex-none h-9 px-4 text-xs font-bold"
+                                disabled={!order.expertId}
                                 onClick={() => {
+                                    if (!order.expertId) {
+                                        toast.error('Cannot request changes until an expert is assigned.');
+                                        return;
+                                    }
                                     if (annotations.length === 0) {
                                         toast.error('Please add annotations before requesting changes.');
                                         return;
@@ -449,7 +454,7 @@ export function ReviewStudio({ order, request, updateOrder }: ReviewStudioProps)
                                     setIsSynced(true);
                                 }}
                             >
-                                <span className="whitespace-nowrap">Request Changes</span>
+                                <span className="whitespace-nowrap">{!order.expertId ? 'Wait for Expert' : 'Request Changes'}</span>
                             </Button>
                         )}
                         {order.status === 'COMPLETED' && (

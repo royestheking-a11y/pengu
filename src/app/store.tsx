@@ -102,7 +102,7 @@ export interface Annotation {
   x: number;
   y: number;
   text: string;
-  author: String;
+  author: string;
   timestamp: string;
   resolved?: boolean;
 }

@@ -29,7 +29,10 @@ export default function AdminOrders() {
   const getRequest = (requestId: string) => requests.find(r => r.id === requestId);
 
   const filteredOrders = orders.filter(order => {
-    const request = getRequest(order.requestId);
+    const requestIdStr = typeof order.requestId === 'object'
+      ? (order.requestId as any)._id || (order.requestId as any).id
+      : order.requestId;
+    const request = getRequest(requestIdStr) || (typeof order.requestId === 'object' ? order.requestId as any : undefined);
     const matchesStatus = filterStatus === 'All' || order.status === filterStatus;
     const matchesSearch = (request?.topic?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
       order.id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -105,7 +108,10 @@ export default function AdminOrders() {
             </Card>
           ) : (
             filteredOrders.map(order => {
-              const request = getRequest(order.requestId);
+              const requestIdStr = typeof order.requestId === 'object'
+                ? (order.requestId as any)._id || (order.requestId as any).id
+                : order.requestId;
+              const request = getRequest(requestIdStr) || (typeof order.requestId === 'object' ? order.requestId as any : undefined);
               const expertId = (order.expertId && typeof order.expertId === 'object') ? (order.expertId as any)._id || (order.expertId as any).id : order.expertId;
               const assignedExpert = experts.find(e => e.userId === expertId || e.id === expertId);
 
@@ -146,9 +152,9 @@ export default function AdminOrders() {
                     </div>
 
                     <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-stone-100 pt-4 md:pt-0 md:pl-6">
-                      {(order.status === 'PAID_CONFIRMED' || (order.status === 'ASSIGNED' && !assignedExpert)) ? (
+                      {(order.status === 'PAID_CONFIRMED' || ((order.status === 'ASSIGNED' || order.status === 'Review') && !assignedExpert)) ? (
                         <Button onClick={() => setAssigningOrderId(order.id)} className="w-full md:w-auto">
-                          {order.status === 'ASSIGNED' ? 'Re-assign Expert' : 'Assign Expert'}
+                          {assignedExpert ? 'Re-assign Expert' : 'Assign Expert'}
                         </Button>
                       ) : (
                         <Link to={`/admin/order/${order.id}`} className="w-full md:w-auto">
