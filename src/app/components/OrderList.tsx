@@ -23,9 +23,10 @@ interface OrderListProps {
   onItemClick?: (id: string) => void;
   basePath: string; // e.g., '/student/order' or '/admin/request'
   emptyState?: React.ReactNode;
+  expertView?: boolean;
 }
 
-export function OrderList({ items, type, basePath, emptyState }: OrderListProps) {
+export function OrderList({ items, type, basePath, emptyState, expertView = false }: OrderListProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -125,7 +126,7 @@ export function OrderList({ items, type, basePath, emptyState }: OrderListProps)
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-[10px] sm:text-xs font-mono text-stone-400">#{item.id}</span>
                         <h3 className="font-bold text-stone-900 group-hover:text-[#5D4037] transition-colors truncate">{item.topic}</h3>
-                        {type === 'order' && (item as Order).annotations && (item as Order).annotations.filter(a => !a.resolved).length > 0 && (
+                        {expertView && type === 'order' && (item as Order).annotations && (item as Order).annotations.filter(a => !a.resolved).length > 0 && (
                           <span className="flex items-center gap-1 px-1.5 py-0.5 bg-rose-100 text-rose-600 text-[10px] rounded-full font-bold border border-rose-200 shrink-0">
                             <Pin className="size-3" /> {(item as Order).annotations.filter(a => !a.resolved).length}
                           </span>

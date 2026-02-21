@@ -164,6 +164,7 @@ export default function ExpertDashboard() {
               items={activeTab === 'active' ? activeOrders : completedOrders}
               type="order"
               basePath="/expert/order"
+              expertView={true}
               emptyState={
                 <EmptyState
                   icon={FileText}

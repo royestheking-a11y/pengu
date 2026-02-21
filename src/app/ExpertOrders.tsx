@@ -53,6 +53,7 @@ export default function ExpertOrders() {
                             items={expertOrders}
                             type="order"
                             basePath="/expert/order"
+                            expertView={true}
                         />
                     </div>
                 </div>
