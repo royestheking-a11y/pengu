@@ -57,7 +57,7 @@ const getMyEvents = asyncHandler(async (req, res) => {
 
 export const getAll = textCrud.getAll;
 export const getById = textCrud.getById;
-const create = asyncHandler(async (req, res) => {
+export const create = asyncHandler(async (req, res) => {
     const item = new SyllabusEvent({
         ...req.body,
         userId: req.user._id
