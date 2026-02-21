@@ -17,13 +17,17 @@ import {
   Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { ReviewsSection } from './ReviewsSection';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SERVICES } from './data/services';
 import { HeroCarousel } from './components/HeroCarousel';
 import { SmartActions } from './components/SmartActions';
 import { useStore } from './store';
 import { HomeSkeleton } from './components/HomeSkeleton';
+import SEO from './components/SEO';
+import SocialSchema from './components/SocialSchema';
+import {
+  ReviewsSection
+} from './ReviewsSection';
 
 // Verified HeroCarousel import
 export default function LandingPage() {
@@ -53,6 +57,13 @@ export default function LandingPage() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Premium Academic OS & Career Accelerator"
+        description="Meet Pengu. The premium workspace for students and professionals. Use our AI Live Canvas, secure expert assignment support, and build your career portfolio."
+        url="https://pengu.work.gd/"
+        keywords="premium academic support, AI study workspace, career acceleration platform, university assignment help, Pengu platform"
+      />
+      <SocialSchema />
       <div className="bg-[#FAFAFA]">
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-[#3E2723] text-white">

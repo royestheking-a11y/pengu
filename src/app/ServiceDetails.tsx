@@ -4,7 +4,8 @@ import { PublicLayout } from './components/Layout';
 import { Button } from './components/ui/button';
 import { ArrowLeft, CheckCircle, Clock, ShieldCheck, Star } from 'lucide-react';
 import { SERVICES } from './data/services';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
+import SEO from './components/SEO';
 
 export default function ServiceDetails() {
   const { id } = useParams();
@@ -18,6 +19,14 @@ export default function ServiceDetails() {
 
   return (
     <PublicLayout>
+      {service.id === 'assignment-support' && (
+        <SEO
+          title="Structured Assignment & Homework Support"
+          description="Elite assignment assistance with guaranteed deadlines, rubric-matching algorithms, and strict plagiarism checks. Get the grade you need safely."
+          url="https://pengu.work.gd/services/assignment-support"
+          keywords="university assignment support, rubric based editing, plagiarism free academic writing, guaranteed deadline assignment"
+        />
+      )}
       <div className="bg-[#FAFAFA] min-h-screen">
         {/* Hero Section */}
         <div className="bg-[#3E2723] text-white pt-32 pb-20 relative overflow-hidden">

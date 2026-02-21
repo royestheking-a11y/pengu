@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PublicLayout } from './components/Layout';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import SEO from './components/SEO';
 import {
     Send, Paperclip, X, Upload, CheckCircle, Loader2,
     FileText, FileImage, File, User, ArrowRight,
@@ -171,6 +172,12 @@ export default function ProblemSolver() {
     // ─── Main Split Screen ────────────────────────────────────────────────────
     return (
         <PublicLayout>
+            <SEO
+                title="The Universal Problem Solver"
+                description="Stuck on a complex project? Drop your files, rubrics, or messy datasets into the Pengu Solver. Our AI and expert team will diagnose and fix it."
+                url="https://pengu.work.gd/problem-solver"
+                keywords="custom academic solutions, fix formatting issues, messy data presentation, expert academic triage, Pengu solver"
+            />
             <div className="bg-[#FAFAFA] min-h-screen">
                 {/* Page Header */}
                 <div className="bg-[#3E2723] text-white py-8 px-4">
