@@ -42,16 +42,27 @@ const createRequest = asyncHandler(async (req, res) => {
 // @route   GET /api/requests/my
 // @access  Private
 const getMyRequests = asyncHandler(async (req, res) => {
-    let query = { studentId: req.user._id };
-
-    if (req.user.role === 'expert') {
-        const assignedOrders = await Order.find({ expertId: req.user._id });
-        const requestIds = assignedOrders.map(o => o.requestId);
-        query = { _id: { $in: requestIds } };
+    if (!req.user) {
+        res.status(401);
+        throw new Error('User context missing');
     }
 
-    const requests = await Request.find(query);
-    res.json(requests);
+    try {
+        let query = { studentId: req.user._id };
+
+        if (req.user.role === 'expert') {
+            const assignedOrders = await Order.find({ expertId: req.user._id });
+            const requestIds = assignedOrders.map(o => o.requestId);
+            query = { _id: { $in: requestIds } };
+        }
+
+        const requests = await Request.find(query);
+        res.json(requests);
+    } catch (error) {
+        console.error('getMyRequests Error:', error);
+        res.status(500);
+        throw new Error('Failed to fetch requests');
+    }
 });
 
 // @desc    Get request by ID

@@ -52,20 +52,31 @@ const createQuote = asyncHandler(async (req, res) => {
 // @route   GET /api/quotes
 // @access  Private
 const getQuotes = asyncHandler(async (req, res) => {
-    let query = {};
-
-    if (req.user.role === 'student') {
-        const myRequests = await Request.find({ studentId: req.user._id });
-        const requestIds = myRequests.map(r => r._id);
-        query = { requestId: { $in: requestIds } };
-    } else if (req.user.role === 'expert') {
-        const assignedOrders = await Order.find({ expertId: req.user._id });
-        const requestIds = assignedOrders.map(o => o.requestId);
-        query = { requestId: { $in: requestIds } };
+    if (!req.user) {
+        res.status(401);
+        throw new Error('User context missing');
     }
 
-    const quotes = await Quote.find(query);
-    res.json(quotes);
+    try {
+        let query = {};
+
+        if (req.user.role === 'student') {
+            const myRequests = await Request.find({ studentId: req.user._id });
+            const requestIds = myRequests.map(r => r._id);
+            query = { requestId: { $in: requestIds } };
+        } else if (req.user.role === 'expert') {
+            const assignedOrders = await Order.find({ expertId: req.user._id });
+            const requestIds = assignedOrders.map(o => o.requestId);
+            query = { requestId: { $in: requestIds } };
+        }
+
+        const quotes = await Quote.find(query);
+        res.json(quotes);
+    } catch (error) {
+        console.error('getQuotes Error:', error);
+        res.status(500);
+        throw new Error('Failed to fetch quotes');
+    }
 });
 
 // @desc    Get quote by Request ID
