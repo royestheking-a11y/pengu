@@ -17,10 +17,23 @@ export const initSocket = (httpServer) => {
         process.env.FRONTEND_URL
     ].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
 
+    logSync(`Whitelist: ${allowedOrigins.join(', ')}`);
+
     io = new Server(httpServer, {
         cors: {
-            origin: allowedOrigins,
-            methods: ["GET", "POST"]
+            origin: function (origin, callback) {
+                if (!origin) return callback(null, true);
+                const isAllowed = allowedOrigins.includes(origin) ||
+                    (origin.endsWith('.vercel.app') && origin.includes('pengu'));
+
+                if (isAllowed) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
+            methods: ["GET", "POST"],
+            credentials: true
         }
     });
 
