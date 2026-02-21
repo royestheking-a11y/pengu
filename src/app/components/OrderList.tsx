@@ -9,7 +9,8 @@ import {
   CheckCircle,
   AlertCircle,
   MoreVertical,
-  ChevronRight
+  ChevronRight,
+  Pin
 } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -124,6 +125,11 @@ export function OrderList({ items, type, basePath, emptyState }: OrderListProps)
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="text-[10px] sm:text-xs font-mono text-stone-400">#{item.id}</span>
                         <h3 className="font-bold text-stone-900 group-hover:text-[#5D4037] transition-colors truncate">{item.topic}</h3>
+                        {type === 'order' && (item as Order).annotations && (item as Order).annotations.filter(a => !a.resolved).length > 0 && (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-rose-100 text-rose-600 text-[10px] rounded-full font-bold border border-rose-200 shrink-0">
+                            <Pin className="size-3" /> {(item as Order).annotations.filter(a => !a.resolved).length}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs sm:text-sm text-stone-500 truncate">
                         {item.serviceType} • {format(new Date(item.createdAt), 'MMM d, yyyy')}

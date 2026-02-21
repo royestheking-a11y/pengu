@@ -120,6 +120,11 @@ export default function OrderDetails() {
               >
                 <tab.icon className={`mr-2 size-5 ${activeTab === tab.id ? 'text-[#5D4037]' : 'text-stone-400'}`} />
                 {tab.name}
+                {tab.id === 'review' && order.annotations && order.annotations.filter(a => !a.resolved).length > 0 && (
+                  <span className="ml-2 px-1.5 py-0.5 bg-rose-500 text-white text-[10px] rounded-full font-bold transition-all animate-in zoom-in">
+                    {order.annotations.filter(a => !a.resolved).length}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
