@@ -400,7 +400,8 @@ export default function AdminPayments() {
                                                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${tx.type === 'INCOME' ? 'bg-green-100 text-green-700' :
                                                         tx.type === 'COMMISSION' ? 'bg-blue-100 text-blue-700' :
                                                             tx.type === 'PAYOUT' ? 'bg-amber-100 text-amber-700' :
-                                                                'bg-stone-100 text-stone-700'
+                                                                tx.type === 'EXPERT_CREDIT' ? 'bg-purple-100 text-purple-700' :
+                                                                    'bg-stone-100 text-stone-700'
                                                         }`}>
                                                         {tx.type}
                                                     </span>

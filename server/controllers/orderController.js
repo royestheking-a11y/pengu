@@ -159,7 +159,7 @@ const updateOrder = asyncHandler(async (req, res) => {
                 // Expert Earnings
                 await Transaction.create({
                     orderId: order._id,
-                    type: 'INCOME',
+                    type: 'EXPERT_CREDIT',
                     amount: earningAmount,
                     expertId: order.expertId,
                     studentId: order.studentId,
@@ -181,7 +181,7 @@ const updateOrder = asyncHandler(async (req, res) => {
                 // Real-time
                 const io = getIO();
                 io.emit('expert_updated', expert);
-                io.emit('transaction_created', { amount: earningAmount, type: 'INCOME' });
+                io.emit('transaction_created', { amount: earningAmount, type: 'EXPERT_CREDIT' });
                 io.emit('transaction_created', { amount: platformProfit, type: 'COMMISSION' });
             }
         }
