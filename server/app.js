@@ -60,6 +60,12 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 import { initSocket } from './socket.js';
 const io = initSocket(httpServer);
 
+// Render Keep-Alive Loop
+import startKeepAlive from './utils/keepAlive.js';
+if (process.env.NODE_ENV === 'production') {
+    startKeepAlive();
+}
+
 // Routes Placeholder
 app.get('/', (req, res) => {
     res.send('Pengu Assistant API is running...');
