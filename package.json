@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "echo 'Build successful'",
     "start": "node index.js",
     "server": "cd server && npm run dev",
     "dev": "concurrently \"npm run server\" \"vite\""

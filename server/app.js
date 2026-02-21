@@ -4,11 +4,17 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import fs from 'fs';
+
+// Reliability Logger
+function logSync(msg) {
+    fs.writeSync(1, `--- [APP] ${msg}\n`);
+}
 
 // Load env vars
 dotenv.config();
-console.log('--- Server Boot Sequence ---');
-console.log('Environment variables loaded');
+logSync('Server Boot Sequence Started');
+logSync('Environment variables loaded');
 
 // Connect to database
 console.log('Connecting to MongoDB...');
@@ -20,7 +26,15 @@ connectDB().then(() => {
 
 const app = express();
 const httpServer = createServer(app);
-console.log('HTTP Server instance created');
+
+// IMMEDIATE PORT BINDING (for Render health check)
+const PORT = process.env.PORT || 5001;
+import fs from 'fs';
+httpServer.listen(PORT, () => {
+    fs.writeSync(1, `--- [SERVER] Listening on Port ${PORT} ---\n`);
+});
+
+logSync('HTTP Server instance created and listening');
 
 // Middleware
 const allowedOrigins = [
@@ -96,8 +110,4 @@ app.use('/api/career-templates', careerTemplateRoutes);
 app.use('/api/study-tools', studyToolsRoutes);
 app.use('/api/universal-tickets', universalTicketRoutes);
 
-const PORT = process.env.PORT || 5001;
-
-httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Server already listening above
