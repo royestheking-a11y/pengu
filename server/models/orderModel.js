@@ -8,7 +8,7 @@ const milestoneSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-    requestId: { type: String, required: true },
+    requestId: { type: mongoose.Schema.Types.ObjectId, ref: 'Request', required: true },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     expertId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     topic: { type: String, required: true },

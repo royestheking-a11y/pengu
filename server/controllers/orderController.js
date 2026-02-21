@@ -11,7 +11,10 @@ import { getIO } from '../socket.js';
 // @route   GET /api/orders
 // @access  Private/Admin
 const getOrders = asyncHandler(async (req, res) => {
-    const orders = await Order.find({}).populate('studentId', 'name email').populate('expertId', 'name email');
+    const orders = await Order.find({})
+        .populate('studentId', 'name email')
+        .populate('expertId', 'name email')
+        .populate('requestId');
     res.json(orders);
 });
 
@@ -19,7 +22,7 @@ const getOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/my
 // @access  Private
 const getMyOrders = asyncHandler(async (req, res) => {
-    const orders = await Order.find({ studentId: req.user._id });
+    const orders = await Order.find({ studentId: req.user._id }).populate('requestId');
     res.json(orders);
 });
 
@@ -27,7 +30,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/expert/my
 // @access  Private/Expert
 const getExpertOrders = asyncHandler(async (req, res) => {
-    const orders = await Order.find({ expertId: req.user._id });
+    const orders = await Order.find({ expertId: req.user._id }).populate('requestId');
     res.json(orders);
 });
 
@@ -37,7 +40,8 @@ const getExpertOrders = asyncHandler(async (req, res) => {
 const getOrderById = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id)
         .populate('studentId', 'name email')
-        .populate('expertId', 'name email');
+        .populate('expertId', 'name email')
+        .populate('requestId');
 
     if (order) {
         res.json(order);

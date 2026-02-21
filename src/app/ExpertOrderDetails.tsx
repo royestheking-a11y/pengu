@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore } from './store';
+import { useStore, Request } from './store';
 import { useParams, Link } from 'react-router-dom';
 import { DashboardLayout } from './components/Layout';
 import { Card } from './components/ui/card';
@@ -30,13 +30,19 @@ export default function ExpertOrderDetails() {
   const { id } = useParams<{ id: string }>();
   const { orders, requests, quotes, commissionRate, currentUser, submitMilestone, reviews, updateOrder } = useStore();
   const order = orders.find(o => o.id === id);
-  const request = requests.find(r => r.id === order?.requestId);
+  // Ensure request is correctly found even if requestId is populated as an object
+  const requestIdStr = typeof order?.requestId === 'object'
+    ? (order.requestId as any)._id || (order.requestId as any).id
+    : order?.requestId;
+
+  const request = requests.find(r => r.id === requestIdStr) ||
+    (typeof order?.requestId === 'object' ? order.requestId as unknown as Request : undefined);
 
   const existingReview = reviews.find(r => r.orderId === order?.id);
 
   // Calculate Expert Payout (Net Amount)
-  const quote = quotes.find(q => q.requestId === request?.id && q.status === 'ACCEPTED');
-  const orderAmount = quote?.amount || 0;
+  // Reliability Update: Use order.amount directly since it's the source of truth for the transaction
+  const orderAmount = order?.amount || 0;
   // Expert sees: Total - Commission
   const expertPayout = Math.round(orderAmount * (1 - commissionRate / 100));
 

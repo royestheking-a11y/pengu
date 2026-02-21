@@ -34,7 +34,12 @@ export default function AdminOrderDetails() {
     const { id } = useParams<{ id: string }>();
     const { orders, requests, experts, users, updateOrder, updateRequest, reviewDeliverable, reviews, updateReviewStatus } = useStore();
     const order = orders.find(o => o.id === id);
-    const request = requests.find(r => r.id === order?.requestId);
+    const requestIdStr = typeof order?.requestId === 'object'
+        ? (order.requestId as any)._id || (order.requestId as any).id
+        : order?.requestId;
+
+    const request = requests.find(r => r.id === requestIdStr) ||
+        (typeof order?.requestId === 'object' ? order.requestId as unknown as Request : undefined);
     const existingReview = reviews.find(r => r.orderId === order?.id);
     const expertId = (order?.expertId && typeof order.expertId === 'object') ? (order.expertId as any)._id || (order.expertId as any).id : order?.expertId;
     const expert = experts.find(e => e.userId === expertId || e.id === expertId);
