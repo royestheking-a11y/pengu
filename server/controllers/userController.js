@@ -94,37 +94,64 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id);
+    try {
+        const user = await User.findById(req.user._id);
 
-    if (user) {
-        user.name = req.body.name || user.name;
-        user.email = req.body.email || user.email;
-        if (req.body.password) {
-            user.password = req.body.password;
+        if (user) {
+            user.name = req.body.name || user.name;
+            user.email = req.body.email || user.email;
+            if (req.body.password) {
+                user.password = req.body.password;
+            }
+            user.bio = req.body.bio || user.bio;
+            user.phone = req.body.phone || user.phone;
+            // Avatar handled by separate upload, but can be set here if URL provided
+            if (req.body.avatar) {
+                user.avatar = req.body.avatar;
+            }
+
+            const updatedUser = await user.save();
+
+            // Sync with Expert profile if user is an expert
+            if (updatedUser.role === 'expert') {
+                try {
+                    await Expert.findOneAndUpdate(
+                        { userId: updatedUser._id },
+                        {
+                            bio: updatedUser.bio,
+                            phone: updatedUser.phone,
+                            name: updatedUser.name
+                            // Avatar is likely managed via User model and fetched 
+                            // but some views might use Expert.avatar if it exists
+                        }
+                    );
+                } catch (expertErr) {
+                    console.error('Failed to sync Expert profile:', expertErr);
+                }
+            }
+
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                token: generateToken(updatedUser._id),
+                avatar: updatedUser.avatar,
+                bio: updatedUser.bio,
+                phone: updatedUser.phone,
+                onboardingCompleted: updatedUser.onboardingCompleted
+            });
+        } else {
+            res.status(404);
+            throw new Error('User not found');
         }
-        user.bio = req.body.bio || user.bio;
-        user.phone = req.body.phone || user.phone;
-        // Avatar handled by separate upload, but can be set here if URL provided
-        if (req.body.avatar) {
-            user.avatar = req.body.avatar;
+    } catch (error) {
+        if (error.code === 11000) {
+            res.status(400);
+            throw new Error('Email already in use');
         }
-
-        const updatedUser = await user.save();
-
-        res.json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            token: generateToken(updatedUser._id),
-            avatar: updatedUser.avatar,
-            bio: updatedUser.bio,
-            phone: updatedUser.phone,
-            onboardingCompleted: updatedUser.onboardingCompleted
-        });
-    } else {
-        res.status(404);
-        throw new Error('User not found');
+        console.error('Profile update error:', error);
+        throw error; // Re-throw for global error handler
     }
 });
 

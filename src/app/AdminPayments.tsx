@@ -30,12 +30,37 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 import { EmptyState } from './components/ui/EmptyState';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "./components/ui/alert-dialog";
 
 export default function AdminPayments() {
     const { financialTransactions, commissionRate, setCommissionRate, experts, orders, verifyOrderPayment, rejectOrderPayment } = useStore();
     const [iseditingRate, setIsEditingRate] = useState(false);
     const [newRate, setNewRate] = useState(commissionRate);
     const [filterType, setFilterType] = useState('ALL');
+
+    // Modal states
+    const [confirmModal, setConfirmModal] = useState<{
+        open: boolean;
+        type: 'verify' | 'reject' | null;
+        orderId: string | null;
+        orderTopic: string | null;
+        amount: number | null;
+    }>({
+        open: false,
+        type: null,
+        orderId: null,
+        orderTopic: null,
+        amount: null
+    });
 
     // Calculate Metrics
     const totalRevenue = financialTransactions
@@ -69,6 +94,20 @@ export default function AdminPayments() {
         setCommissionRate(newRate);
         setIsEditingRate(false);
         toast.success(`Commission rate updated to ${newRate}%`);
+    };
+
+    const handleConfirmAction = () => {
+        if (!confirmModal.orderId) return;
+
+        if (confirmModal.type === 'verify') {
+            verifyOrderPayment(confirmModal.orderId);
+            toast.success("Payment verified successfully");
+        } else if (confirmModal.type === 'reject') {
+            rejectOrderPayment(confirmModal.orderId);
+            toast.success("Payment rejected");
+        }
+
+        setConfirmModal({ open: false, type: null, orderId: null, orderTopic: null, amount: null });
     };
 
     return (
@@ -269,11 +308,13 @@ export default function AdminPayments() {
                                                         <Button
                                                             size="sm"
                                                             className="bg-green-600 hover:bg-green-700 text-white border-none shadow-sm h-8"
-                                                            onClick={() => {
-                                                                if (confirm(`Confirm payment of TK ${order.amount} for Order #${order.id.slice(-6)}?`)) {
-                                                                    verifyOrderPayment(order.id);
-                                                                }
-                                                            }}
+                                                            onClick={() => setConfirmModal({
+                                                                open: true,
+                                                                type: 'verify',
+                                                                orderId: order.id,
+                                                                orderTopic: order.topic,
+                                                                amount: order.amount
+                                                            })}
                                                         >
                                                             Verify
                                                         </Button>
@@ -281,11 +322,13 @@ export default function AdminPayments() {
                                                             size="sm"
                                                             variant="outline"
                                                             className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 h-8"
-                                                            onClick={() => {
-                                                                if (confirm(`Reject payment for Order #${order.id.slice(-6)}?`)) {
-                                                                    rejectOrderPayment(order.id);
-                                                                }
-                                                            }}
+                                                            onClick={() => setConfirmModal({
+                                                                open: true,
+                                                                type: 'reject',
+                                                                orderId: order.id,
+                                                                orderTopic: order.topic,
+                                                                amount: order.amount
+                                                            })}
                                                         >
                                                             Reject
                                                         </Button>
@@ -377,6 +420,36 @@ export default function AdminPayments() {
                     </div>
                 </Card>
             </div>
+
+            <AlertDialog open={confirmModal.open} onOpenChange={(open) => !open && setConfirmModal(prev => ({ ...prev, open: false }))}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmModal.type === 'verify' ? 'Confirm Payment Verification' : 'Reject Payment'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmModal.type === 'verify' ? (
+                                <>
+                                    Are you sure you want to verify the payment of <span className="font-bold text-stone-900 font-mono">TK {confirmModal.amount?.toLocaleString()}</span> for <span className="font-medium text-stone-900">"{confirmModal.orderTopic}"</span>? This action will record the transaction and update the order status.
+                                </>
+                            ) : (
+                                <>
+                                    Are you sure you want to reject this payment? The student will be notified and may need to re-submit payment details.
+                                </>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmAction}
+                            className={confirmModal.type === 'verify' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+                        >
+                            {confirmModal.type === 'verify' ? 'Confirm Verification' : 'Confirm Rejection'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </DashboardLayout >
     );
 }

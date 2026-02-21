@@ -16,11 +16,36 @@ import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { EmptyState } from './components/ui/EmptyState';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "./components/ui/alert-dialog";
 
 export default function AdminWithdrawals() {
     const { withdrawalRequests, updateWithdrawalStatus, experts } = useStore();
     const [filterStatus, setFilterStatus] = useState<string>('All');
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal state
+    const [confirmModal, setConfirmModal] = useState<{
+        open: boolean;
+        requestId: string | null;
+        newStatus: WithdrawalRequest['status'] | null;
+        expertName: string | null;
+        amount: number | null;
+    }>({
+        open: false,
+        requestId: null,
+        newStatus: null,
+        expertName: null,
+        amount: null
+    });
 
     const filteredRequests = withdrawalRequests.filter(req => {
         const expert = experts.find(e => e.id === req.expertId);
@@ -32,6 +57,19 @@ export default function AdminWithdrawals() {
 
     const handleUpdateStatus = (id: string, newStatus: WithdrawalRequest['status']) => {
         updateWithdrawalStatus(id, newStatus);
+        const action = newStatus === 'CONFIRMED' ? 'confirmed' : newStatus === 'PAID' ? 'marked as paid' : 'rejected';
+        toast.success(`Withdrawal request ${action}`);
+        setConfirmModal({ open: false, requestId: null, newStatus: null, expertName: null, amount: null });
+    };
+
+    const openConfirmDialog = (req: WithdrawalRequest, expert: any, status: WithdrawalRequest['status']) => {
+        setConfirmModal({
+            open: true,
+            requestId: req.id,
+            newStatus: status,
+            expertName: expert?.name || 'Expert',
+            amount: req.amount
+        });
     };
 
     return (
@@ -196,16 +234,30 @@ export default function AdminWithdrawals() {
                                                 <div className="flex justify-end gap-2">
                                                     {req.status === 'PENDING' && (
                                                         <>
-                                                            <Button size="sm" variant="outline" className="h-8 text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => handleUpdateStatus(req.id, 'CONFIRMED')}>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                                onClick={() => openConfirmDialog(req, expert, 'CONFIRMED')}
+                                                            >
                                                                 Confirm
                                                             </Button>
-                                                            <Button size="sm" variant="ghost" className="h-8 text-red-500 hover:bg-red-50" onClick={() => handleUpdateStatus(req.id, 'REJECTED')}>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="h-8 text-red-500 hover:bg-red-50"
+                                                                onClick={() => openConfirmDialog(req, expert, 'REJECTED')}
+                                                            >
                                                                 Reject
                                                             </Button>
                                                         </>
                                                     )}
                                                     {req.status === 'CONFIRMED' && (
-                                                        <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700" onClick={() => handleUpdateStatus(req.id, 'PAID')}>
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-8 bg-green-600 hover:bg-green-700"
+                                                            onClick={() => openConfirmDialog(req, expert, 'PAID')}
+                                                        >
                                                             Mark as Paid
                                                         </Button>
                                                     )}
@@ -227,6 +279,44 @@ export default function AdminWithdrawals() {
                     </div>
                 </Card>
             </div>
+
+            <AlertDialog open={confirmModal.open} onOpenChange={(open) => !open && setConfirmModal(prev => ({ ...prev, open: false }))}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {confirmModal.newStatus === 'CONFIRMED' ? 'Confirm Withdrawal Request' :
+                                confirmModal.newStatus === 'PAID' ? 'Finish Withdrawal Payment' : 'Reject Withdrawal'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {confirmModal.newStatus === 'CONFIRMED' ? (
+                                <>
+                                    Are you sure you want to confirm this withdrawal of <span className="font-bold text-stone-900">TK {confirmModal.amount?.toLocaleString()}</span> for <span className="font-medium text-stone-900">{confirmModal.expertName}</span>? This will move it to the payment queue.
+                                </>
+                            ) : confirmModal.newStatus === 'PAID' ? (
+                                <>
+                                    Have you completed the bank transfer/payment of <span className="font-bold text-stone-900">TK {confirmModal.amount?.toLocaleString()}</span> to <span className="font-medium text-stone-900">{confirmModal.expertName}</span>? Marking as paid will finalize the transaction.
+                                </>
+                            ) : (
+                                <>
+                                    Are you sure you want to reject this withdrawal request? The balance will be returned to the expert.
+                                </>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => confirmModal.requestId && confirmModal.newStatus && handleUpdateStatus(confirmModal.requestId, confirmModal.newStatus)}
+                            className={confirmModal.newStatus === 'PAID' ? "bg-green-600 hover:bg-green-700" :
+                                confirmModal.newStatus === 'CONFIRMED' ? "bg-blue-600 hover:bg-blue-700" :
+                                    "bg-red-600 hover:bg-red-700"}
+                        >
+                            {confirmModal.newStatus === 'PAID' ? 'Yes, Paid' :
+                                confirmModal.newStatus === 'CONFIRMED' ? 'Confirm Request' : 'Confirm Rejection'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </DashboardLayout>
     );
 }
