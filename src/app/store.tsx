@@ -357,7 +357,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Pending backend items (Quotes logic is complex, keeping client-side state for now but persisting to Order on accept)
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [commissionRate, setCommissionRate] = useState(15);
+  const [commissionRate, setCommissionRateState] = useState(15);
+
+  const setCommissionRate = async (rate: number) => {
+    try {
+      setCommissionRateState(rate);
+      await api.patch('/system/settings', { commissionRate: rate });
+    } catch (error) {
+      console.error("Error updating commission rate", error);
+      toast.error("Failed to persist commission rate to server.");
+    }
+  };
 
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -397,6 +407,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               setCourseObjects(res.data.map((d: any) => ({ ...d, id: d._id || d.id })));
               setCourses(res.data.map((c: any) => c.name));
             }));
+
+            promises.push(api.get('/system/settings').then(res => {
+              if (res.data && res.data.commissionRate) {
+                setCommissionRateState(res.data.commissionRate);
+              }
+            }));
           } else {
             promises.push(api.get('/requests/my').then(res => setRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/quotes').then(res => setQuotes(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
@@ -418,6 +434,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               setCourseObjects(res.data.map((d: any) => ({ ...d, id: d._id || d.id })));
               setCourses(res.data.map((c: any) => c.name));
             }));
+
           }
         }
 

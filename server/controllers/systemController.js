@@ -1,9 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
-import User from '../models/userModel.js';
-import Order from '../models/orderModel.js';
-import Request from '../models/requestModel.js';
-import os from 'os';
+import SystemSettings from '../models/systemModel.js';
 
 // @desc    Get system status and stats
 // @route   GET /api/system/stats
@@ -46,4 +43,38 @@ const getSystemStats = asyncHandler(async (req, res) => {
     });
 });
 
-export { getSystemStats };
+// @desc    Get system settings
+// @route   GET /api/system/settings
+// @access  Private/Admin
+const getSystemSettings = asyncHandler(async (req, res) => {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+        settings = await SystemSettings.create({
+            commissionRate: 15,
+            maintenanceMode: false,
+            bannerMessage: ''
+        });
+    }
+    res.json(settings);
+});
+
+// @desc    Update system settings
+// @route   PATCH /api/system/settings
+// @access  Private/Admin
+const updateSystemSettings = asyncHandler(async (req, res) => {
+    const { commissionRate, maintenanceMode, bannerMessage } = req.body;
+
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+        settings = new SystemSettings({});
+    }
+
+    if (commissionRate !== undefined) settings.commissionRate = commissionRate;
+    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
+    if (bannerMessage !== undefined) settings.bannerMessage = bannerMessage;
+
+    const updatedSettings = await settings.save();
+    res.json(updatedSettings);
+});
+
+export { getSystemStats, getSystemSettings, updateSystemSettings };
