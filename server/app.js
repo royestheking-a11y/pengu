@@ -4,17 +4,11 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
-import fs from 'fs';
-
-// Reliability Logger
-function logSync(msg) {
-    fs.writeSync(1, `--- [APP] ${msg}\n`);
-}
 
 // Load env vars
 dotenv.config();
-logSync('Server Boot Sequence Started');
-logSync('Environment variables loaded');
+console.log('--- Server Boot Sequence ---');
+console.log('Environment variables loaded');
 
 // Connect to database
 console.log('Connecting to MongoDB...');
@@ -26,26 +20,27 @@ connectDB().then(() => {
 
 const app = express();
 const httpServer = createServer(app);
-
-// IMMEDIATE PORT BINDING (for Render health check)
-const PORT = process.env.PORT || 5001;
-import fs from 'fs';
-httpServer.listen(PORT, () => {
-    fs.writeSync(1, `--- [SERVER] Listening on Port ${PORT} ---\n`);
-});
-
-logSync('HTTP Server instance created and listening');
+console.log('HTTP Server instance created');
 
 // Middleware
 const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
+    "https://pengu-six.vercel.app",
     process.env.FRONTEND_URL
-].filter(Boolean);
+].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
@@ -110,4 +105,8 @@ app.use('/api/career-templates', careerTemplateRoutes);
 app.use('/api/study-tools', studyToolsRoutes);
 app.use('/api/universal-tickets', universalTicketRoutes);
 
-// Server already listening above
+const PORT = process.env.PORT || 5001;
+
+httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

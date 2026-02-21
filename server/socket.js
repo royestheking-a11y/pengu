@@ -12,8 +12,10 @@ export const initSocket = (httpServer) => {
     const allowedOrigins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "https://pengu-six.vercel.app",
         process.env.FRONTEND_URL
-    ].filter(Boolean);
+    ].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
 
     io = new Server(httpServer, {
         cors: {
