@@ -2,6 +2,7 @@ import React from 'react';
 import { PublicLayout } from './components/Layout';
 import { Star, User, Quote } from 'lucide-react';
 import api from '../lib/api';
+import { ReviewSkeleton } from './components/ReviewSkeleton';
 
 export default function Reviews() {
   const [reviews, setReviews] = React.useState<any[]>([]);
@@ -63,7 +64,11 @@ export default function Reviews() {
 
         <div className="max-w-7xl mx-auto px-4 py-16">
           {loading ? (
-            <div className="text-center text-stone-500 py-12">Loading reviews...</div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <ReviewSkeleton key={i} variant="fullPage" />
+              ))}
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {reviews.map((review) => (
