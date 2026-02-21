@@ -1,23 +1,35 @@
+import fs from 'fs';
+
 /**
- * Render/Production Loader
- * Wraps the main application in a try-catch to reveal hidden boot-time errors.
+ * Render/Production Loader v2
+ * High-reliability logging to capture silent crashes.
  */
-console.log('--- [LOADER] Booting Node.js ---');
+function logSync(msg) {
+    fs.writeSync(1, `--- [LOADER] ${msg}\n`);
+}
+
+logSync('Booting Node.js process...');
+
+// Capture global errors that happen during async operations or ESM resolution
+process.on('uncaughtException', (err) => {
+    logSync('UNCAUGHT EXCEPTION DETECTED');
+    fs.writeSync(2, `${err.stack}\n`);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logSync('UNHANDLED REJECTION DETECTED');
+    fs.writeSync(2, `${reason}\n`);
+});
 
 try {
-    console.log('--- [LOADER] Attempting to import app.js ---');
+    logSync('Attempting to import app.js...');
     await import('./app.js');
-    console.log('--- [LOADER] app.js loaded successfully ---');
+    logSync('app.js successfully imported and executed');
 } catch (error) {
-    console.error('--- [LOADER] FATAL BOOT ERROR ---');
-    console.error('Error Name:', error.name);
-    console.error('Error Message:', error.message);
-    console.error('Stack Trace:', error.stack);
-
-    // Check for common ESM/Dependency issues
-    if (error.message.includes('Cannot find module')) {
-        console.error('TIP: A dependency might be missing from server/package.json');
-    }
-
+    logSync('FATAL BOOT ERROR CAUGHT');
+    fs.writeSync(2, `Error Name: ${error.name}\n`);
+    fs.writeSync(2, `Error Message: ${error.message}\n`);
+    fs.writeSync(2, `Stack Trace: ${error.stack}\n`);
     process.exit(1);
 }
