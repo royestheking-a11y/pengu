@@ -1,8 +1,14 @@
 import { Server } from 'socket.io';
+import fs from 'fs';
 
 let io;
 
+function logSync(msg) {
+    fs.writeSync(1, `--- [SOCKET] ${msg}\n`);
+}
+
 export const initSocket = (httpServer) => {
+    logSync('Initializing Socket.io...');
     const allowedOrigins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
