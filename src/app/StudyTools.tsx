@@ -9,6 +9,7 @@ import {
     Loader2, ChevronDown, ChevronUp, Target, ArrowRight,
     User, GraduationCap, FileText, PenLine, ClipboardList, ScanSearch
 } from 'lucide-react';
+import api from '../lib/api';
 
 const SUBJECTS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science',
     'Economics', 'History', 'English Literature', 'Psychology', 'Law',
@@ -38,13 +39,8 @@ function QuizGenerator() {
         setAnswers({});
         setSubmitted(false);
         try {
-            const res = await fetch('/api/study-tools/quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, subject, difficulty, count })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
+            const res = await api.post('/study-tools/quiz', { topic, subject, difficulty, count });
+            const data = res.data;
             setQuiz(data);
             toast.success(`${data.questions?.length} questions generated!`);
         } catch (e: any) {
@@ -193,13 +189,8 @@ function ConceptExplainer() {
         setLoading(true);
         setResult(null);
         try {
-            const res = await fetch('/api/study-tools/explain', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, subject, level })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
+            const res = await api.post('/study-tools/explain', { topic, subject, level });
+            const data = res.data;
             setResult(data);
             toast.success('Concept explained!');
         } catch (e: any) {
@@ -348,13 +339,8 @@ function ExamPrep() {
         setResult(null);
         setExpandedQ(null);
         try {
-            const res = await fetch('/api/study-tools/exam-prep', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic, subject, examType, count })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
+            const res = await api.post('/study-tools/exam-prep', { topic, subject, examType, count });
+            const data = res.data;
             setResult(data);
             toast.success(`${data.questions?.length} exam questions ready!`);
         } catch (e: any) {

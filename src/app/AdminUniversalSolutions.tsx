@@ -8,6 +8,7 @@ import {
     Trash2, ChevronDown, ChevronUp, Loader2, X,
     AlertCircle, FileImage, File, Eye
 } from 'lucide-react';
+import api from '../lib/api';
 
 type TicketStatus = 'pending' | 'reviewing' | 'resolved';
 
@@ -32,9 +33,8 @@ export default function AdminUniversalSolutions() {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/universal-tickets');
-            const data = await res.json();
-            setTickets(data);
+            const res = await api.get('/universal-tickets');
+            setTickets(res.data);
         } catch {
             toast.error('Failed to fetch tickets');
         } finally {
@@ -46,11 +46,7 @@ export default function AdminUniversalSolutions() {
 
     const updateStatus = async (id: string, status: TicketStatus) => {
         try {
-            await fetch(`/api/universal-tickets/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
-            });
+            await api.patch(`/universal-tickets/${id}`, { status });
             setTickets(prev => prev.map(t => t._id === id ? { ...t, status } : t));
             toast.success(`Ticket marked as ${status}`);
         } catch {
@@ -61,7 +57,7 @@ export default function AdminUniversalSolutions() {
     const deleteTicket = async (id: string) => {
         if (!window.confirm('Delete this ticket?')) return;
         try {
-            await fetch(`/api/universal-tickets/${id}`, { method: 'DELETE' });
+            await api.delete(`/universal-tickets/${id}`);
             setTickets(prev => prev.filter(t => t._id !== id));
             toast.success('Ticket deleted');
         } catch {

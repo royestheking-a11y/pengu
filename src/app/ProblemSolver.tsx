@@ -8,6 +8,7 @@ import {
     FileText, FileImage, File, User, ArrowRight,
     Phone, MessageSquare, Sparkles, Shield
 } from 'lucide-react';
+import api from '../lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Message = { role: 'user' | 'assistant'; content: string };
@@ -70,13 +71,8 @@ export default function ProblemSolver() {
         setInput('');
         setChatLoading(true);
         try {
-            const res = await fetch('/api/universal-tickets/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: newMessages })
-            });
-            const data = await res.json();
-            setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+            const res = await api.post('/universal-tickets/chat', { messages: newMessages });
+            setMessages(prev => [...prev, { role: 'assistant', content: res.data.reply }]);
         } catch {
             setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I had a connection issue. Please try again!" }]);
         } finally {
@@ -91,8 +87,8 @@ export default function ProblemSolver() {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            const res = await fetch('/api/upload', { method: 'POST', body: formData });
-            const data = await res.json();
+            const res = await api.post('/upload', formData);
+            const data = res.data;
             setFiles(prev => prev.map(f =>
                 f.name === file.name && f.uploading ? { name: data.name, url: data.url, format: data.format, size: data.size } : f
             ));
@@ -124,13 +120,7 @@ export default function ProblemSolver() {
 
         setSubmitting(true);
         try {
-            const res = await fetch('/api/universal-tickets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, whatsapp, messages, files })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
+            await api.post('/universal-tickets', { name, whatsapp, messages, files });
             setSubmitted(true);
         } catch (e: any) {
             toast.error(e.message || 'Failed to submit. Please try again.');

@@ -48,12 +48,8 @@ const CareerBoost = () => {
         }
         setIsAnalyzing(true);
         try {
-            const response = await fetch('/api/career-acceleration/analyze', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cvText, jdText })
-            });
-            const data = await response.json();
+            const response = await api.post('/career-acceleration/analyze', { cvText, jdText });
+            const data = response.data;
             setResult(data);
             toast.success("Intelligence Analysis Complete!");
         } catch (error) {
@@ -67,12 +63,8 @@ const CareerBoost = () => {
     const handleOptimize = async () => {
         const toastId = toast.loading("Optimizing your CV for maximum impact...");
         try {
-            const response = await fetch('/api/career-acceleration/optimize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cvText })
-            });
-            const data = await response.json();
+            const response = await api.post('/career-acceleration/optimize', { cvText });
+            const data = response.data;
             // Groq may return `optimized` as an object — always convert to string
             const optimizedText = typeof data.optimized === 'string'
                 ? data.optimized
@@ -94,12 +86,8 @@ const CareerBoost = () => {
         setIsGeneratingEmail(true);
         const toastId = toast.loading("Generating your personalized application email...");
         try {
-            const response = await fetch('/api/career-acceleration/generate-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cvText, jdText, tone: emailTone, length: emailLength })
-            });
-            const data = await response.json();
+            const response = await api.post('/career-acceleration/generate-email', { cvText, jdText, tone: emailTone, length: emailLength });
+            const data = response.data;
             setGeneratedEmail(data.email);
             toast.success("AI Application Email Generated!", { id: toastId });
         } catch (error) {
