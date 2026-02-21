@@ -76,6 +76,16 @@ export default function ExpertOrderDetails() {
     setSelectedMilestoneId(null);
   };
 
+  const handleToggleAnnotationResolve = (annotationId: string) => {
+    if (!order.annotations) return;
+    const updatedAnnotations = order.annotations.map(anno =>
+      anno.id === annotationId ? { ...anno, resolved: !anno.resolved } : anno
+    );
+    updateOrder(order.id, { annotations: updatedAnnotations });
+    const isResolvedNow = updatedAnnotations.find(a => a.id === annotationId)?.resolved;
+    toast.success(isResolvedNow ? 'Point marked as done.' : 'Point marked as pending.');
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -577,8 +587,8 @@ export default function ExpertOrderDetails() {
                                         className={`absolute group cursor-pointer transition-all z-20 hover:scale-125 focus:outline-none ${selectedAnnotationId === anno.id ? 'scale-125 z-30' : ''}`}
                                         style={{ left: `${anno.x}%`, top: `${anno.y}%`, transform: 'translate(-50%, -50%)' }}
                                       >
-                                        <div className={`size-8 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-xs font-bold transition-all ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white scale-110' : 'bg-[#3E2723] text-white opacity-90'}`}>
-                                          {idx + 1}
+                                        <div className={`size-8 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-xs font-bold transition-all ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white scale-110' : anno.resolved ? 'bg-green-600 text-white opacity-80' : 'bg-[#3E2723] text-white opacity-90'}`}>
+                                          {anno.resolved ? <CheckCircle className="size-4" /> : idx + 1}
                                         </div>
                                         {selectedAnnotationId !== anno.id && (
                                           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-48 p-2 bg-white rounded-lg shadow-xl border border-stone-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal text-left z-40">
@@ -606,8 +616,8 @@ export default function ExpertOrderDetails() {
                                         className={`absolute group cursor-pointer transition-all z-20 hover:scale-125 focus:outline-none ${selectedAnnotationId === anno.id ? 'scale-125 z-30' : ''}`}
                                         style={{ left: `${anno.x}%`, top: `${anno.y}%`, transform: 'translate(-50%, -50%)' }}
                                       >
-                                        <div className={`size-8 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-xs font-bold transition-all ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white scale-110' : 'bg-[#3E2723] text-white opacity-90'}`}>
-                                          {idx + 1}
+                                        <div className={`size-8 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-xs font-bold transition-all ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white scale-110' : anno.resolved ? 'bg-green-600 text-white opacity-80' : 'bg-[#3E2723] text-white opacity-90'}`}>
+                                          {anno.resolved ? <CheckCircle className="size-4" /> : idx + 1}
                                         </div>
                                         {selectedAnnotationId !== anno.id && (
                                           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-48 p-2 bg-white rounded-lg shadow-xl border border-stone-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-normal text-left z-40">
@@ -650,9 +660,24 @@ export default function ExpertOrderDetails() {
                                     onClick={() => setSelectedAnnotationId(anno.id)}
                                     className={`p-4 rounded-2xl border transition-all cursor-pointer ${selectedAnnotationId === anno.id ? 'border-rose-500 bg-rose-50 ring-1 ring-rose-300 shadow-md' : 'border-stone-100 hover:border-stone-200 bg-stone-50/50'}`}
                                   >
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className={`size-6 rounded-full flex items-center justify-center text-[10px] font-bold ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white' : 'bg-[#3E2723] text-white'}`}>{idx + 1}</span>
-                                      <span className="text-[10px] text-stone-400 font-bold tracking-tighter">{safeFormatDate(anno.timestamp, null, 'p')}</span>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className={`size-6 rounded-full flex items-center justify-center text-[10px] font-bold ${selectedAnnotationId === anno.id ? 'bg-rose-500 text-white' : anno.resolved ? 'bg-green-600 text-white' : 'bg-[#3E2723] text-white'}`}>
+                                          {anno.resolved ? <CheckCircle className="size-3" /> : idx + 1}
+                                        </span>
+                                        <span className="text-[10px] text-stone-400 font-bold tracking-tighter">{safeFormatDate(anno.timestamp, null, 'p')}</span>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-6 w-auto px-2 text-[9px] font-bold rounded-full transition-all ${anno.resolved ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleToggleAnnotationResolve(anno.id);
+                                        }}
+                                      >
+                                        {anno.resolved ? 'Done' : 'Mark as Done'}
+                                      </Button>
                                     </div>
                                     <p className="text-sm text-stone-700 leading-relaxed font-semibold">"{anno.text || 'No comment provided'}"</p>
                                     <div className="mt-3 flex items-center gap-1.5">

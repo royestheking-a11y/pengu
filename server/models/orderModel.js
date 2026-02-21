@@ -33,7 +33,8 @@ const orderSchema = new mongoose.Schema({
             y: Number,
             text: String,
             author: String,
-            timestamp: String
+            timestamp: String,
+            resolved: { type: Boolean, default: false }
         })
     ],
     revisionsResolved: { type: Boolean, default: false },

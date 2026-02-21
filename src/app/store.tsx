@@ -102,8 +102,9 @@ export interface Annotation {
   x: number;
   y: number;
   text: string;
-  author: string;
+  author: String;
   timestamp: string;
+  resolved?: boolean;
 }
 
 export interface Message {
