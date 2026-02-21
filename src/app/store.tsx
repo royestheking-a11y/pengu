@@ -390,6 +390,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         // --- 2. User Specific Data (Fetch only if logged in) ---
         if (currentUser) {
+          // Fetch settings for all authenticated users to sync commission rates
+          promises.push(api.get('/system/settings').then(res => {
+            if (res.data && res.data.commissionRate) {
+              setCommissionRateState(res.data.commissionRate);
+            }
+          }));
+
           if (currentUser.role === 'admin') {
             promises.push(api.get('/auth/users').then(res => setUsers(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/requests').then(res => setRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
@@ -408,11 +415,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               setCourses(res.data.map((c: any) => c.name));
             }));
 
-            promises.push(api.get('/system/settings').then(res => {
-              if (res.data && res.data.commissionRate) {
-                setCommissionRateState(res.data.commissionRate);
-              }
-            }));
           } else {
             promises.push(api.get('/requests/my').then(res => setRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/quotes').then(res => setQuotes(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));

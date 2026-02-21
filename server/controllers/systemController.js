@@ -68,17 +68,18 @@ const getSystemSettings = asyncHandler(async (req, res) => {
 const updateSystemSettings = asyncHandler(async (req, res) => {
     const { commissionRate, maintenanceMode, bannerMessage } = req.body;
 
-    let settings = await SystemSettings.findOne();
-    if (!settings) {
-        settings = new SystemSettings({});
-    }
+    const updates = {};
+    if (commissionRate !== undefined) updates.commissionRate = commissionRate;
+    if (maintenanceMode !== undefined) updates.maintenanceMode = maintenanceMode;
+    if (bannerMessage !== undefined) updates.bannerMessage = bannerMessage;
 
-    if (commissionRate !== undefined) settings.commissionRate = commissionRate;
-    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
-    if (bannerMessage !== undefined) settings.bannerMessage = bannerMessage;
+    const settings = await SystemSettings.findOneAndUpdate(
+        {},
+        { $set: updates },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
 
-    const updatedSettings = await settings.save();
-    res.json(updatedSettings);
+    res.json(settings);
 });
 
 export { getSystemStats, getSystemSettings, updateSystemSettings };

@@ -115,18 +115,22 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             // Sync with Expert profile if user is an expert
             if (updatedUser.role === 'expert') {
                 try {
-                    await Expert.findOneAndUpdate(
-                        { userId: updatedUser._id },
-                        {
-                            bio: updatedUser.bio,
-                            phone: updatedUser.phone,
-                            name: updatedUser.name
-                            // Avatar is likely managed via User model and fetched 
-                            // but some views might use Expert.avatar if it exists
-                        }
-                    );
+                    const expertUpdates = {};
+                    if (req.body.bio) expertUpdates.bio = req.body.bio;
+                    // Only sync bio as it's the only common field that 
+                    // makes sense to duplicate for expert-specific views.
+
+                    if (Object.keys(expertUpdates).length > 0) {
+                        const expertSync = await Expert.findOneAndUpdate(
+                            { userId: updatedUser._id },
+                            { $set: expertUpdates },
+                            { new: true }
+                        );
+                        console.log(`[UserController] Expert profile synced: ${expertSync?._id || 'Not Found'}`);
+                    }
                 } catch (expertErr) {
-                    console.error('Failed to sync Expert profile:', expertErr);
+                    console.error('[UserController] Failed to sync Expert profile:', expertErr.message);
+                    // Do not fail user update if expert sync fails
                 }
             }
 

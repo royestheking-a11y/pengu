@@ -42,7 +42,7 @@ import {
 } from "./components/ui/alert-dialog";
 
 export default function AdminPayments() {
-    const { financialTransactions, commissionRate, setCommissionRate, experts, orders, verifyOrderPayment, rejectOrderPayment } = useStore();
+    const { financialTransactions, commissionRate, setCommissionRate, experts, orders, verifyOrderPayment, rejectOrderPayment, withdrawalRequests } = useStore();
     const [iseditingRate, setIsEditingRate] = useState(false);
     const [newRate, setNewRate] = useState(commissionRate);
     const [filterType, setFilterType] = useState('ALL');
@@ -75,7 +75,12 @@ export default function AdminPayments() {
         .filter(tx => tx.type === 'PAYOUT')
         .reduce((sum, tx) => sum + tx.amount, 0);
 
-    const netPlatformProfit = totalCommission - totalPayouts; // Simplified for demo
+    const pendingPayoutAmount = withdrawalRequests
+        .filter(r => r.status === 'PENDING' || r.status === 'CONFIRMED')
+        .reduce((sum, r) => sum + r.amount, 0);
+
+    // netPlatformLiquidity = Verified Income - Processed Payouts
+    const netPlatformLiquidity = totalRevenue - totalPayouts;
 
     // chart data grouping by date
     const chartData = financialTransactions.reduce((acc: any[], tx) => {
@@ -164,22 +169,22 @@ export default function AdminPayments() {
                         </div>
                         <div>
                             <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">Pending Payouts</p>
-                            <p className="text-2xl font-bold text-stone-900 leading-tight">TK {totalPayouts.toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-stone-900 leading-tight">TK {pendingPayoutAmount.toLocaleString()}</p>
                             <div className="mt-1 text-[10px] text-stone-400 font-bold">
-                                Expert Withdrawals
+                                Awaiting Admin Action
                             </div>
                         </div>
                     </Card>
 
-                    <Card className="p-5 flex flex-row items-center gap-4 hover:shadow-md transition-all bg-[#5D4037] text-white border-none shadow-lg">
+                    <Card className={`p-5 flex flex-row items-center gap-4 hover:shadow-md transition-all border-none shadow-lg ${netPlatformLiquidity >= 0 ? 'bg-[#5D4037] text-white' : 'bg-rose-600 text-white'}`}>
                         <div className="p-3.5 rounded-2xl bg-white/20 shrink-0">
-                            <TrendingUp className="size-6" />
+                            <History className="size-6" />
                         </div>
                         <div>
-                            <p className="text-[10px] text-stone-200 font-bold uppercase tracking-wider mb-0.5">Net Growth</p>
-                            <p className="text-2xl font-bold leading-tight">TK {netPlatformProfit.toLocaleString()}</p>
+                            <p className="text-[10px] text-stone-200 font-bold uppercase tracking-wider mb-0.5">Net Growth (Liquidity)</p>
+                            <p className="text-2xl font-bold leading-tight">TK {netPlatformLiquidity.toLocaleString()}</p>
                             <div className="mt-1 text-[10px] text-stone-300/80 font-bold">
-                                Platform Liquidity
+                                {netPlatformLiquidity < 0 ? '⚠️ Pending income verification' : 'Total In - Total Out'}
                             </div>
                         </div>
                     </Card>
@@ -241,6 +246,11 @@ export default function AdminPayments() {
                                 <p className="text-[10px] text-stone-500">
                                     New rate applies to all future completed orders.
                                 </p>
+                                <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                                        <span className="font-bold">Note:</span> Platform Profit is officially recorded as a <span className="font-bold uppercase">Commission</span> transaction only when an order is marked as <span className="font-bold">COMPLETED</span> by the expert.
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="pt-6 border-t border-stone-100">
