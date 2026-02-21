@@ -7,12 +7,20 @@ import connectDB from './config/db.js';
 
 // Load env vars
 dotenv.config();
+console.log('--- Server Boot Sequence ---');
+console.log('Environment variables loaded');
 
 // Connect to database
-connectDB();
+console.log('Connecting to MongoDB...');
+connectDB().then(() => {
+    console.log('Stage 1: Database Check Passed');
+}).catch(err => {
+    console.error('Stage 1: Database Connection Failed', err);
+});
 
 const app = express();
 const httpServer = createServer(app);
+console.log('HTTP Server instance created');
 
 // Middleware
 const allowedOrigins = [
