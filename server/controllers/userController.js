@@ -141,7 +141,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
                 name: updatedUser.name,
                 email: updatedUser.email,
                 role: updatedUser.role,
-                token: generateToken(updatedUser._id),
+                token: generateToken(updatedUser._id.toString()),
                 avatar: updatedUser.avatar,
                 bio: updatedUser.bio,
                 phone: updatedUser.phone,
@@ -173,7 +173,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         }
 
         res.status(500);
-        throw new Error('Internal Server Error while updating profile');
+        // Expose original error message to help debug production 500s
+        throw new Error(`Profile Update Error: ${error.message}`);
     }
 });
 
