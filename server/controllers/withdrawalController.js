@@ -170,6 +170,22 @@ const requestStudentWithdrawal = asyncHandler(async (req, res) => {
         throw new Error('Insufficient credits');
     }
 
+    // Enforce Monthly Cycle: Check if student has already withdrawn this month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const existingWithdrawal = await Withdrawal.findOne({
+        studentId: user._id,
+        status: { $ne: 'REJECTED' },
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+    });
+
+    if (existingWithdrawal) {
+        res.status(400);
+        throw new Error('You can only withdraw once per month. Your next cycle begins on the 1st of next month.');
+    }
+
     // Convert to BDT: Credits / 100 * 120
     const amountBDT = (amountCredits / 100) * 120;
 

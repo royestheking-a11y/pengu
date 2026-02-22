@@ -435,7 +435,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             promises.push(api.get('/messages').then(res => setMessages(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/notifications/my').then(res => setNotifications(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
 
-            if (currentUser.role === 'expert') {
+            if (currentUser.role === 'expert' || currentUser.role === 'student') {
               promises.push(api.get('/withdrawals').then(res => setWithdrawalRequests(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
               promises.push(api.get('/transactions').then(res => setFinancialTransactions(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             }
