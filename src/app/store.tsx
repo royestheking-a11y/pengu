@@ -402,7 +402,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (currentUser) {
           // Re-fetch profile to sync latest data (credits, status, etc.)
           promises.push(api.get('/auth/profile').then(res => {
-            const updatedUser = { ...res.data, id: res.data._id || res.data.id };
+            const updatedUser = { ...res.data, id: res.data._id || res.data.id, token: currentUser.token };
             setCurrentUser(updatedUser);
           }));
 
