@@ -27,6 +27,8 @@ export interface User {
   onboardingCompleted?: boolean;
   bio?: string;
   phone?: string;
+  pengu_credits?: number;
+  total_earned?: number;
 }
 
 export interface Request {
@@ -187,9 +189,13 @@ export interface PayoutMethod {
 
 export interface WithdrawalRequest {
   id: string;
-  expertId: string;
+  expertId?: string;
+  studentId?: string;
   amount: number;
-  methodId: string;
+  amount_credits?: number;
+  method?: string;
+  phone_number?: string;
+  methodId?: string;
   methodDetails?: {
     type: string;
     accountName: string;
@@ -197,7 +203,7 @@ export interface WithdrawalRequest {
     bankName?: string;
     branchName?: string;
   };
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'REJECTED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
 }
@@ -237,7 +243,7 @@ export interface ExpertApplication {
 
 export interface FinancialTransaction {
   id: string;
-  type: 'PAYOUT' | 'COMMISSION' | 'EXPERT_CREDIT' | 'INCOME';
+  type: 'PAYOUT' | 'COMMISSION' | 'EXPERT_CREDIT' | 'INCOME' | 'STUDENT_EARNING';
   amount: number;
   expertId: string;
   orderId?: string;
@@ -292,7 +298,11 @@ interface StoreData {
   addPayoutMethod: (expertId: string, method: Omit<PayoutMethod, 'id'>) => void; // Pending real implementation
   removePayoutMethod: (expertId: string, methodId: string) => void; // Pending
   requestWithdrawal: (expertId: string, amount: number, methodId: string) => Promise<void>;
+  requestStudentWithdrawal: (amountCredits: number, method: string, phoneNumber: string) => Promise<void>;
+  approveStudentWithdrawal: (withdrawalId: string) => Promise<void>;
+  rejectStudentWithdrawal: (withdrawalId: string) => Promise<void>;
   updateWithdrawalStatus: (reqId: string, status: WithdrawalRequest['status']) => Promise<void>;
+
 
   withdrawalRequests: WithdrawalRequest[];
   financialTransactions: FinancialTransaction[];
@@ -1112,6 +1122,62 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch (e) { toast.error("Failed update"); }
   };
 
+  const requestStudentWithdrawal = async (amountCredits: number, method: string, phoneNumber: string) => {
+    try {
+      const { data } = await api.post('/withdrawals/student/request', { amountCredits, method, phoneNumber });
+      const mappedData = { ...data, id: data._id || data.id };
+      setWithdrawalRequests(prev => [mappedData, ...prev]);
+
+      // Update local credits immediately
+      if (currentUser) {
+        setCurrentUser({
+          ...currentUser,
+          pengu_credits: (currentUser.pengu_credits || 0) - amountCredits
+        });
+      }
+      toast.success("Withdrawal requested successfully!");
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to request withdrawal");
+    }
+  };
+
+  const approveStudentWithdrawal = async (withdrawalId: string) => {
+    try {
+      const { data } = await api.post('/withdrawals/admin/approve', { withdrawalId });
+      const mappedData = { ...data, id: data._id || data.id };
+      setWithdrawalRequests(prev => prev.map(r => r.id === withdrawalId ? mappedData : r));
+
+      // Also refresh transactions
+      const txRes = await api.get('/transactions');
+      setFinancialTransactions(txRes.data.map((d: any) => ({ ...d, id: d._id || d.id })));
+
+      toast.success("Withdrawal approved!");
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to approve withdrawal");
+    }
+  };
+
+  const rejectStudentWithdrawal = async (withdrawalId: string) => {
+    try {
+      const { data } = await api.post('/withdrawals/admin/reject', { withdrawalId });
+      const mappedData = { ...data, id: data._id || data.id };
+      setWithdrawalRequests(prev => prev.map(r => r.id === withdrawalId ? mappedData : r));
+
+      // Update student credits locally if it's the current user (highly unlikely for admin but good practice)
+      if (currentUser && data.studentId === currentUser.id) {
+        setCurrentUser({
+          ...currentUser,
+          pengu_credits: (currentUser.pengu_credits || 0) + data.amount_credits
+        });
+      }
+
+      toast.success("Withdrawal rejected and credits refunded");
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to reject withdrawal");
+    }
+  };
+
+
 
   return (
     <StoreContext.Provider value={{
@@ -1125,7 +1191,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateExpertStatus, updateExpertProfile, toggleExpertOnline, assignExpert,
       updateOrder, verifyOrderPayment, rejectOrderPayment, updateRequest,
       submitMilestone, reviewDeliverable, addPayoutMethod, removePayoutMethod,
-      requestWithdrawal, updateWithdrawalStatus,
+      requestWithdrawal, requestStudentWithdrawal, approveStudentWithdrawal, rejectStudentWithdrawal,
+      updateWithdrawalStatus,
       skills, addSkill, syllabusEvents, addSyllabusEvent, courses, addCourse, updateCourse, deleteCourse,
       expertApplications, submitExpertApplication, reviewExpertApplication,
       reviews, submitReview, updateReviewStatus,

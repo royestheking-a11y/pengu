@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Withdrawal from '../models/withdrawalModel.js';
 import Expert from '../models/expertModel.js';
 import Transaction from '../models/transactionModel.js';
+import User from '../models/userModel.js';
 import { notifyAdmins } from '../utils/notificationUtils.js';
 import { getIO } from '../socket.js';
 
@@ -152,4 +153,121 @@ const updateWithdrawalStatus = asyncHandler(async (req, res) => {
     res.json(withdrawal);
 });
 
-export { requestWithdrawal, getWithdrawals, updateWithdrawalStatus };
+// @desc    Request a student withdrawal
+// @route   POST /api/withdrawals/student/request
+// @access  Private/Student
+const requestStudentWithdrawal = asyncHandler(async (req, res) => {
+    const { amountCredits, method, phoneNumber } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (amountCredits < 500) {
+        res.status(400);
+        throw new Error('Minimum withdrawal is 500 Credits');
+    }
+
+    if (user.pengu_credits < amountCredits) {
+        res.status(400);
+        throw new Error('Insufficient credits');
+    }
+
+    // Convert to BDT: Credits / 100 * 120
+    const amountBDT = (amountCredits / 100) * 120;
+
+    user.pengu_credits -= amountCredits;
+    await user.save();
+
+    const withdrawal = await Withdrawal.create({
+        studentId: user._id,
+        amount: amountBDT,
+        amount_credits: amountCredits,
+        method,
+        phone_number: phoneNumber,
+        status: 'PENDING'
+    });
+
+    await notifyAdmins(
+        'New Student Withdrawal Request',
+        `Student ${user.name} requested withdrawal of ৳${amountBDT}. Method: ${method}`,
+        'warning',
+        '/admin/payments'
+    );
+
+    const io = getIO();
+    io.emit('withdrawal_created', withdrawal);
+
+    res.status(201).json(withdrawal);
+});
+
+// @desc    Approve a student withdrawal
+// @route   POST /api/withdrawals/admin/approve
+// @access  Private/Admin
+const approveStudentWithdrawal = asyncHandler(async (req, res) => {
+    const { withdrawalId } = req.body;
+    const withdrawal = await Withdrawal.findById(withdrawalId);
+
+    if (!withdrawal) {
+        res.status(404);
+        throw new Error('Withdrawal not found');
+    }
+
+    withdrawal.status = 'APPROVED';
+    await withdrawal.save();
+
+    // Create a transaction record for student payout (negative amount or special type)
+    await Transaction.create({
+        studentId: withdrawal.studentId,
+        type: 'PAYOUT',
+        amount: withdrawal.amount,
+        description: `Student Withdrawal Paid (৳${withdrawal.amount}) via ${withdrawal.method}`,
+        status: 'completed'
+    });
+
+    const io = getIO();
+    io.emit('withdrawal_updated', withdrawal);
+    io.emit('transaction_created', { amount: withdrawal.amount, type: 'PAYOUT' });
+
+    res.json(withdrawal);
+});
+
+// @desc    Reject a student withdrawal and refund credits
+// @route   POST /api/withdrawals/admin/reject
+// @access  Private/Admin
+const rejectStudentWithdrawal = asyncHandler(async (req, res) => {
+    const { withdrawalId } = req.body;
+    const withdrawal = await Withdrawal.findById(withdrawalId);
+
+    if (!withdrawal) {
+        res.status(404);
+        throw new Error('Withdrawal not found');
+    }
+
+    if (withdrawal.status === 'REJECTED') {
+        res.status(400);
+        throw new Error('Withdrawal already rejected');
+    }
+
+    withdrawal.status = 'REJECTED';
+    await withdrawal.save();
+
+    // Refund credits to user
+    const user = await User.findById(withdrawal.studentId);
+    if (user) {
+        user.pengu_credits += withdrawal.amount_credits;
+        await user.save();
+    }
+
+    const io = getIO();
+    io.emit('withdrawal_updated', withdrawal);
+
+    res.json(withdrawal);
+});
+
+export {
+    requestWithdrawal,
+    getWithdrawals,
+    updateWithdrawalStatus,
+    requestStudentWithdrawal,
+    approveStudentWithdrawal,
+    rejectStudentWithdrawal
+};
+

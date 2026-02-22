@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     avatar: { type: String },
     bio: { type: String },
     phone: { type: String },
+    pengu_credits: { type: Number, default: 0 },
+    total_earned: { type: Number, default: 0 },
     joinedAt: { type: Date, default: Date.now },
     onboardingCompleted: { type: Boolean, default: false },
 }, {

@@ -12,13 +12,26 @@ import {
   AlertCircle,
   CheckCircle,
   Plus,
-  ArrowRight
+  ArrowRight,
+  Coins,
+  Wallet,
+  ArrowUpRight
 } from 'lucide-react';
+import WithdrawModal from './components/WithdrawModal';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 
 export default function StudentDashboard() {
-  const { requests, orders, currentUser, skills, isInitialized } = useStore();
+  const { requests, orders, currentUser, skills, isInitialized, withdrawalRequests } = useStore();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
+
+  const credits = currentUser?.pengu_credits || 0;
+  const bdtValue = (credits / 100) * 120;
+
+  const totalWithdrawn = withdrawalRequests
+    .filter(r => r.studentId === currentUser?.id && (r.status === 'PAID' || r.status === 'APPROVED'))
+    .reduce((acc, curr) => acc + (curr.amount_credits || 0), 0);
+
 
   const activeRequests = requests
     .filter(r => r.studentId === currentUser?.id && r.status !== 'CONVERTED')
@@ -78,46 +91,89 @@ export default function StudentDashboard() {
         </div>
 
         {/* Status Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Wallet Card */}
+          <Card className="p-6 bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-white overflow-hidden relative group hover:shadow-2xl transition-all border-none">
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
+                  <Wallet className="size-5 text-amber-300" />
+                </div>
+                <Link to="/student/earn">
+                  <Button size="sm" className="h-8 text-[10px] uppercase font-bold bg-white text-[#3E2723] hover:bg-stone-50 border-none shadow-xl px-4 rounded-full transition-all">
+                    <Plus className="size-3 mr-1" /> Earn Now
+                  </Button>
+                </Link>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-stone-300 uppercase tracking-widest mb-1">Current Pool</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black">{credits.toLocaleString()}</h3>
+                  <span className="text-sm font-medium text-stone-300">Credits</span>
+                </div>
+                <p className="text-xs text-stone-400 mt-1 font-medium italic">≈ ৳{bdtValue.toLocaleString()} BDT</p>
+              </div>
+              <Button
+                onClick={() => setIsWithdrawModalOpen(true)}
+                disabled={credits < 500}
+                className="mt-4 w-full bg-white text-[#3E2723] hover:bg-stone-100 border-none font-bold rounded-xl shadow-lg active:scale-95 transition-all text-xs h-10 disabled:opacity-50"
+              >
+                Withdraw Funds
+              </Button>
+            </div>
+            {/* Decor */}
+            <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform duration-500">
+              <Coins size={140} />
+            </div>
+          </Card>
+
           <Link to="/student/requests">
-            <Card className="p-6 border-l-4 border-l-[#5D4037] hover:shadow-lg transition-all cursor-pointer group h-full">
+            <Card className="p-6 border-l-4 border-l-[#5D4037] hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-stone-700 group-hover:text-[#5D4037]">Active Requests</h3>
                 <FileText className="text-[#5D4037] size-5" />
               </div>
-              <div className="text-3xl font-bold text-[#3E2723]">{activeRequests.length}</div>
-              <p className="text-sm text-stone-500 mt-1">
-                {activeRequests.filter(r => r.status === 'QUOTED').length} awaiting approval
-              </p>
+              <div>
+                <div className="text-3xl font-bold text-[#3E2723]">{activeRequests.length}</div>
+                <p className="text-sm text-stone-500 mt-1">
+                  {activeRequests.filter(r => r.status === 'QUOTED').length} awaiting approval
+                </p>
+              </div>
             </Card>
           </Link>
 
           <Link to="/student/orders">
-            <Card className="p-6 border-l-4 border-l-amber-500 hover:shadow-lg transition-all cursor-pointer group h-full">
+            <Card className="p-6 border-l-4 border-l-amber-500 hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-stone-700 group-hover:text-amber-600">Orders in Progress</h3>
                 <Clock className="text-amber-500 size-5" />
               </div>
-              <div className="text-3xl font-bold text-[#3E2723]">{activeOrders.length}</div>
-              <p className="text-sm text-stone-500 mt-1">
-                {activeOrders.length > 0 ? 'Managing your deadlines' : 'No active orders'}
-              </p>
+              <div>
+                <div className="text-3xl font-bold text-[#3E2723]">{activeOrders.length}</div>
+                <p className="text-sm text-stone-500 mt-1">
+                  {activeOrders.length > 0 ? 'Managing your deadlines' : 'No active orders'}
+                </p>
+              </div>
             </Card>
           </Link>
 
           <Link to="/student/skills">
-            <Card className="p-6 border-l-4 border-l-green-600 hover:shadow-lg transition-all cursor-pointer group h-full">
+            <Card className="p-6 border-l-4 border-l-green-600 hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col justify-between">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-stone-700 group-hover:text-green-700">Career Skills</h3>
+                <h3 className="font-semibold text-stone-700 group-hover:text-green-700">Earnings & Skills</h3>
                 <TrendingUp className="text-green-600 size-5" />
               </div>
-              <div className="text-3xl font-bold text-[#3E2723]">{totalSkillsCount}</div>
-              <p className="text-sm text-stone-500 mt-1">
-                {totalSkillsCount > 0 ? `+${userSkills.length} recent skills` : 'No skills indexed yet'}
-              </p>
+              <div>
+                <div className="text-3xl font-bold text-[#3E2723]">{totalSkillsCount}</div>
+                <p className="text-sm text-stone-500 mt-1 flex justify-between items-center">
+                  <span>{totalSkillsCount > 0 ? `+${userSkills.length} recent` : 'No skills indexed'}</span>
+                  <span className="text-[10px] font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">৳{((currentUser?.total_earned || 0) / 100 * 120).toLocaleString()} Total Earned</span>
+                </p>
+              </div>
             </Card>
           </Link>
         </div>
+
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -238,6 +294,11 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
     </DashboardLayout>
   );
 }
+

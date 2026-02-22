@@ -3,9 +3,13 @@ import createCRUDRoutes from '../controllers/crudController.js';
 import Transaction from '../models/transactionModel.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import asyncHandler from 'express-async-handler';
+import { handleCPXWebhook } from '../controllers/transactionController.js';
 
 const router = express.Router();
 const crud = createCRUDRoutes(Transaction);
+
+router.route('/cpx').get(handleCPXWebhook);
+
 
 const getTransactions = asyncHandler(async (req, res) => {
     if (req.user.role === 'admin') {

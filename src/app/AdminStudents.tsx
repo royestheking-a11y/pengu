@@ -134,6 +134,7 @@ export default function AdminStudents() {
                     <th className="px-4 py-3 rounded-tl-xl text-[#3E2723]">Student</th>
                     <th className="px-4 py-3 text-[#3E2723]">Status</th>
                     <th className="px-4 py-3 text-[#3E2723]">Joined</th>
+                    <th className="px-4 py-3 text-[#3E2723]">Credits</th>
                     <th className="px-4 py-3 text-[#3E2723]">Orders</th>
                     <th className="px-4 py-3 rounded-tr-xl text-right text-[#3E2723]">Actions</th>
                   </tr>
@@ -167,6 +168,9 @@ export default function AdminStudents() {
                       </td>
                       <td className="px-4 py-4 text-stone-600">
                         {format(new Date(student.joinedAt), 'MMM d, yyyy')}
+                      </td>
+                      <td className="px-4 py-4 text-stone-600 font-bold">
+                        {(student.pengu_credits || 0).toLocaleString()} <span className="text-[10px] font-medium opacity-50">c</span>
                       </td>
                       <td className="px-4 py-4 text-stone-600 font-medium">
                         {getStudentOrdersCount(student.id)}
@@ -318,20 +322,34 @@ export default function AdminStudents() {
                     <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Total Orders</p>
                     <p className="font-medium text-2xl">{getStudentOrdersCount(selectedStudent.id)}</p>
                   </div>
+                  <div className="flex gap-4">
+                    <div>
+                      <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Credits</p>
+                      <p className="font-bold text-amber-300">{(selectedStudent.pengu_credits || 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Lifetime Earned</p>
+                      <p className="font-bold text-green-400">{(selectedStudent.total_earned || 0).toLocaleString()}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-6 mt-6 border-t border-white/10 space-y-3">
                   <Button className="w-full bg-white text-[#3E2723] hover:bg-stone-100" onClick={() => handleMail(selectedStudent)}>
                     <Mail className="mr-2 size-4" /> Send Message
                   </Button>
-                  <Button className="w-full bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => setIsViewModalOpen(false)}>
-                    Close
-                  </Button>
                 </div>
               </div>
 
               {/* Right Content: Stats & Orders */}
-              <div className="md:w-2/3 p-8 bg-stone-50 overflow-y-auto">
+              <div className="md:w-2/3 p-8 bg-stone-50 overflow-y-auto relative">
+                <button
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="absolute top-6 right-6 p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-200 rounded-full transition-all z-10"
+                >
+                  <X className="size-6" />
+                </button>
+
                 <div className="flex justify-between items-center mb-6">
                   <h4 className="font-bold text-[#3E2723] text-lg flex items-center gap-2">
                     <Users className="size-5" /> Order History

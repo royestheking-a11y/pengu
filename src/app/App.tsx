@@ -35,8 +35,10 @@ import Messages from './Messages';
 import StudyTools from './StudyTools';
 import ProblemSolver from './ProblemSolver';
 import AdminUniversalSolutions from './AdminUniversalSolutions';
+import EarnPage from './EarnPage';
 
 import AdminOrders from './AdminOrders';
+
 import AdminOrderDetails from './AdminOrderDetails';
 import AdminStudents from './AdminStudents';
 import AdminReviews from './AdminReviews';
@@ -170,6 +172,7 @@ export default function App() {
             <Route path="/student/skills" element={<StudentRouteGuard><SkillTwin /></StudentRouteGuard>} />
             <Route path="/student/messages" element={<StudentRouteGuard><Messages /></StudentRouteGuard>} />
             <Route path="/student/study-tools" element={<StudentRouteGuard><StudyTools /></StudentRouteGuard>} />
+            <Route path="/student/earn" element={<EarnPage />} />
             <Route path="/student/settings" element={<StudentRouteGuard><Settings /></StudentRouteGuard>} />
 
             {/* Admin Routes */}

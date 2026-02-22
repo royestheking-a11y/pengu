@@ -40,6 +40,7 @@ const MENU_ITEMS = {
     { icon: Briefcase, label: 'Career Vault', path: '/student/career-vault' },
     { icon: Rocket, label: 'Career Acceleration', path: '/student/career-acceleration' },
     { icon: Brain, label: 'AI Study Tools', path: '/student/study-tools' },
+    { icon: Sparkles, label: 'Pengu Arcade', path: '/student/earn' },
     { icon: MessageSquare, label: 'Messages', path: '/student/messages' },
     { icon: Settings, label: 'Settings', path: '/student/settings' },
   ],
