@@ -13,7 +13,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
 
     // 1. Verify Secure Hash
     const APP_SECURE_HASH = process.env.CPX_SECURE_HASH || 'YOUR_CPX_SECURE_HASH';
-    const computedHash = crypto.createHash('md5').update(trans_id + APP_SECURE_HASH).digest('hex');
+    const computedHash = crypto.createHash('md5').update(trans_id + '-' + APP_SECURE_HASH).digest('hex');
 
     if (secure_hash !== computedHash) {
         console.error('[CPX Webhook] Hash mismatch');
