@@ -400,6 +400,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         // --- 2. User Specific Data (Fetch only if logged in) ---
         if (currentUser) {
+          // Re-fetch profile to sync latest data (credits, status, etc.)
+          promises.push(api.get('/auth/profile').then(res => {
+            const updatedUser = { ...res.data, id: res.data._id || res.data.id };
+            setCurrentUser(updatedUser);
+          }));
+
           // Fetch settings for all authenticated users to sync commission rates
           promises.push(api.get('/system/settings').then(res => {
             if (res.data && res.data.commissionRate) {
