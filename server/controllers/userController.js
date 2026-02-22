@@ -95,6 +95,7 @@ const registerUser = asyncHandler(async (req, res) => {
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
     try {
+        console.log(`[UserController] Profile update request for user: ${req.user._id}`);
         const user = await User.findById(req.user._id);
 
         if (user) {
@@ -111,6 +112,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             }
 
             const updatedUser = await user.save();
+            console.log(`[UserController] User ${updatedUser._id} saved successfully`);
 
             // Sync with Expert profile if user is an expert
             if (updatedUser.role === 'expert') {
@@ -146,16 +148,32 @@ const updateUserProfile = asyncHandler(async (req, res) => {
                 onboardingCompleted: updatedUser.onboardingCompleted
             });
         } else {
+            console.warn(`[UserController] User not found during profile update: ${req.user._id}`);
             res.status(404);
             throw new Error('User not found');
         }
     } catch (error) {
+        console.error('[UserController] Profile update error details:', {
+            userId: req.user?._id,
+            errorName: error.name,
+            errorMessage: error.message,
+            errorCode: error.code,
+            validationErrors: error.errors
+        });
+
         if (error.code === 11000) {
             res.status(400);
             throw new Error('Email already in use');
         }
-        console.error('Profile update error:', error);
-        throw error; // Re-throw for global error handler
+
+        if (error.name === 'ValidationError') {
+            res.status(400);
+            const messages = Object.values(error.errors).map(val => val.message);
+            throw new Error(`Validation Error: ${messages.join(', ')}`);
+        }
+
+        res.status(500);
+        throw new Error('Internal Server Error while updating profile');
     }
 });
 
@@ -290,8 +308,6 @@ const googleAuth = asyncHandler(async (req, res) => {
             try {
                 await Expert.create({
                     userId: user._id,
-                    email: user.email,
-                    name: user.name,
                     specialty: 'General Specialist',
                     status: 'Pending',
                     onboardingCompleted: false

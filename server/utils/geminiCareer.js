@@ -16,22 +16,30 @@ const ask = async (prompt, maxTokens = 2000) => {
 
 // Helper: parse JSON from Groq (strips markdown fences + fixes literal control chars in strings)
 const parseJSON = (text) => {
-  const cleaned = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/g, '').trim();
+  // Try to find a JSON block in the text
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  const cleaned = jsonMatch ? jsonMatch[0] : text;
 
   try {
     return JSON.parse(cleaned);
   } catch (e) {
     if (e.message.includes('control character') || e.message.includes('Bad control') || e.message.includes('Unexpected token')) {
-      // Replace literal newlines/tabs inside JSON string values only
-      // The /gs flag lets . match newlines, so we can find multi-line strings
       const sanitized = cleaned.replace(/"((?:[^"\\]|\\.)*)"/gs, (match) => {
         return match
           .replace(/\n/g, '\\n')
           .replace(/\r/g, '\\r')
           .replace(/\t/g, '\\t');
       });
-      return JSON.parse(sanitized);
+      try {
+        return JSON.parse(sanitized);
+      } catch (innerError) {
+        console.error('[Groq Utility] JSON Parse Error after sanitization:', innerError.message);
+        console.error('[Groq Utility] Raw text that failed:', text);
+        throw innerError;
+      }
     }
+    console.error('[Groq Utility] JSON Parse Error:', e.message);
+    console.error('[Groq Utility] Raw text that failed:', text);
     throw e;
   }
 };
@@ -146,3 +154,44 @@ Return ONLY the email text. No JSON. No markdown.`;
 
   return await ask(prompt, 800);
 };
+
+// ─── CV Intelligent Review via Groq ───────────────────────────────────────────
+export const groqReviewCV = async (cvText) => {
+  const prompt = `You are an elite executive recruiter and personal branding expert. Analyze the following CV content based on 2026 industry standards.
+  
+  Focus on:
+  1. ATS Compatibility (parsing-friendly structure)
+  2. Header Impact (contact info, links)
+  3. Metric-based Experience (quantifiable achievements)
+  4. Skill Density (keywords vs fluff)
+  
+  CV Content:
+  ${cvText.slice(0, 5000)}
+  
+  Return ONLY valid JSON in this exact structure. No markdown fences. Ensure ALL values (especially score) are STRINGS wrapped in double quotes.
+  {
+    "score": "8.5/10",
+    "role": "TECH",
+    "seniority": "MID",
+    "foundKeywords": ["React", "Node.js"],
+    "missingKeywords": ["AWS"],
+    "analysis": {
+      "header": { "pass": true, "note": "Header note here" },
+      "summary": { "pass": true, "note": "Summary note here" },
+      "skills": { "pass": true, "note": "Skills note here" },
+      "experience": { "pass": true, "note": "Experience note here" },
+      "projects": { "pass": true, "note": "Projects note here" },
+      "whatToUpdate": ["Tip 1", "Tip 2", "Tip 3"]
+    }
+  }`;
+
+  const text = await ask(prompt, 2000);
+  const result = parseJSON(text);
+
+  // Ensure date is added for UI compatibility
+  result.date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return result;
+};
+
+

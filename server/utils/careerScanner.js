@@ -223,8 +223,8 @@ export const upgradeBulletPoints = (text) => {
     };
 };
 
-export const scanCareerDocument = async (file) => {
-    const text = await extractText(file);
+export const scanCareerDocument = async (file, providedText = null) => {
+    const text = providedText || (await extractText(file));
     const textLower = text.toLowerCase();
     // ... rest of the existing function
     const filename = file.originalname.toLowerCase();

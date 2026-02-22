@@ -1,6 +1,8 @@
 
 import CareerReview from '../models/careerReviewModel.js';
 import { scanCareerDocument } from '../utils/careerScanner.js';
+import { groqReviewCV } from '../utils/geminiCareer.js';
+import { extractText } from '../utils/textExtractor.js';
 import asyncHandler from 'express-async-handler';
 
 // @desc    Scan CV/Cover Letter
@@ -13,7 +15,28 @@ const scan = asyncHandler(async (req, res) => {
     }
 
     try {
-        const result = await scanCareerDocument(req.file);
+        console.log(`[CareerController] Starting scan for: ${req.file.originalname}`);
+
+        // 1. Extract raw text from document
+        const text = await extractText(req.file);
+        if (!text || text.trim().length < 50) {
+            throw new Error('Document seems empty or could not be parsed.');
+        }
+
+        let result;
+        let source = 'groq';
+
+        // 2. Attempt Intelligent Scan via Groq
+        try {
+            console.log('[CareerController] Attempting Groq Intelligent Scan...');
+            result = await groqReviewCV(text);
+            console.log('[CareerController] ✅ Groq Scan Succeeded');
+        } catch (groqError) {
+            console.warn('[CareerController] ⚠️ Groq Scan Failed, falling back to Rule-Based Engine:', groqError.message);
+            source = 'internal-rules';
+            // 3. Fallback to Built-in Rule-Based Scanner
+            result = await scanCareerDocument(req.file, text);
+        }
 
         const review = await CareerReview.create({
             userId: req.user._id,
@@ -21,7 +44,8 @@ const scan = asyncHandler(async (req, res) => {
             ...result
         });
 
-        res.status(201).json(review);
+        // Add source to response for debugging/transparency (optional, not in model but helps)
+        res.status(201).json({ ...review.toObject(), _source: source });
     } catch (error) {
         console.error('[CareerController] Scan Failed:', error);
         res.status(500).json({
