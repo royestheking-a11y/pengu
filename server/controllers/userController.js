@@ -90,6 +90,31 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+const getUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            bio: user.bio,
+            phone: user.phone,
+            pengu_credits: user.pengu_credits,
+            total_earned: user.total_earned,
+            onboardingCompleted: user.onboardingCompleted
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
@@ -332,4 +357,4 @@ const googleAuth = asyncHandler(async (req, res) => {
     });
 });
 
-export { authUser, registerUser, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth };
+export { authUser, registerUser, getUserProfile, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth };
