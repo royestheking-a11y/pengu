@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Transaction from '../models/transactionModel.js';
 import User from '../models/userModel.js';
 import crypto from 'crypto';
+import { getIO } from '../socket.js';
 
 // @desc    Handle CPX Research Webhook
 // @route   GET /api/transactions/cpx
@@ -28,6 +29,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
     }
 
     const amount = parseFloat(amount_local);
+    console.log(`[CPX Webhook] Parsed Amount: ${amount}, Current User Credits: ${user.pengu_credits}`);
 
     // 3. Handle Status
     if (status === '2') {
@@ -35,7 +37,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
         const existingTx = await Transaction.findOne({ trans_id });
 
         if (existingTx && existingTx.status !== 'chargeback') {
-            // Deduct credits
+            const oldBalance = user.pengu_credits;
             user.pengu_credits = Math.max(0, user.pengu_credits - amount);
             await user.save();
 
@@ -44,38 +46,60 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
             existingTx.description = `[REVERSED] ${existingTx.description}`;
             await existingTx.save();
 
-            console.log(`[CPX Webhook] Reversal processed for Trans: ${trans_id}, User: ${user_id}`);
-            return res.status(200).send('Reversal processed');
+            console.log(`[CPX Webhook] Reversal: ${oldBalance} -> ${user.pengu_credits} (Deducted ${amount})`);
+
+            // Notify User via Socket
+            const io = getIO();
+            io.to(user._id.toString()).emit('user_updated', user);
+            io.emit('transaction_created', { type: 'STUDENT_EARNING', status: 'chargeback' });
+
+            return res.status(200).send('OK'); // CPX expects OK or 200
         }
 
-        return res.status(200).send('Reversal already processed or tx not found');
+        return res.status(200).send('OK');
     } else if (status === '1') {
-        // COMPLETED / PENDING (CPX calls it 1 for successful credit)
+        // COMPLETED / PENDING
         const existingTx = await Transaction.findOne({ trans_id });
         if (existingTx) {
-            return res.status(200).send('Duplicate transaction');
+            console.log(`[CPX Webhook] Duplicate detected for Trans: ${trans_id}`);
+            return res.status(200).send('OK'); // Return OK to CPX so it stops retrying
         }
 
+        const oldBalance = user.pengu_credits;
         // Update Credits
-        user.pengu_credits += amount;
-        user.total_earned += amount;
-        await user.save();
+        user.pengu_credits = (user.pengu_credits || 0) + amount;
+        user.total_earned = (user.total_earned || 0) + amount;
 
-        // Create Transaction Record
-        await Transaction.create({
-            studentId: user._id,
-            type: 'STUDENT_EARNING',
-            amount: amount,
-            description: `CPX Survey Earning (Ref: ${trans_id})`,
-            trans_id,
-            status: 'completed'
-        });
+        console.log(`[CPX Webhook] Updating Credits for ${user.email}: ${oldBalance} -> ${user.pengu_credits}`);
 
-        console.log(`[CPX Webhook] Credit added: ${amount} to User: ${user_id}`);
-        return res.status(200).send('OK');
+        try {
+            await user.save();
+            console.log(`[CPX Webhook] User saved successfully`);
+
+            // Create Transaction Record
+            await Transaction.create({
+                studentId: user._id,
+                type: 'STUDENT_EARNING',
+                amount: amount,
+                description: `CPX Survey Earning (Ref: ${trans_id})`,
+                trans_id,
+                status: 'completed'
+            });
+            console.log(`[CPX Webhook] Transaction record created`);
+
+            // Notify User via Socket
+            const io = getIO();
+            io.to(user._id.toString()).emit('user_updated', user);
+            io.emit('transaction_created', { amount, type: 'STUDENT_EARNING' });
+
+            return res.status(200).send('OK');
+        } catch (saveError) {
+            console.error('[CPX Webhook] Save Error:', saveError);
+            return res.status(500).send('Error saving user');
+        }
     }
 
-    res.status(200).send('Unknown status');
+    res.status(200).send('OK');
 });
 
 export { handleCPXWebhook };

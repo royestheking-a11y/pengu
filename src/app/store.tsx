@@ -578,9 +578,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const handleExpertUpdate = (data: any) => {
         // Refresh experts list for admins or own profile for expert
         api.get('/experts').then(res => setExperts(res.data));
-        if (currentUser.role === 'expert' && data.userId === currentUser.id) {
-          // If own profile updated, maybe refresh currentUser too if relevant
-          // currentUser is updated via updateProfile usually, but socket can catch admin-side bans/status changes
+      };
+
+      const handleUserUpdate = (data: any) => {
+        if (currentUser && (data._id === currentUser.id || data.id === currentUser.id)) {
+          const updatedUser = { ...data, id: data._id || data.id };
+          setCurrentUser(updatedUser);
+          toast.success("Credits added successfully!");
         }
       };
 
@@ -607,6 +611,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         socket.on('review_created', handleReviewUpdate);
         socket.on('review_updated', handleReviewUpdate);
         socket.on('expert_updated', handleExpertUpdate);
+        socket.on('user_updated', handleUserUpdate);
         socket.on('notification_created', handleNotification);
         socket.on('transaction_created', handleTransactionUpdate);
       }
@@ -625,6 +630,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           socket.off('review_created', handleReviewUpdate);
           socket.off('review_updated', handleReviewUpdate);
           socket.off('expert_updated', handleExpertUpdate);
+          socket.off('user_updated', handleUserUpdate);
           socket.off('notification_created', handleNotification);
           socket.off('transaction_created', handleTransactionUpdate);
         }
