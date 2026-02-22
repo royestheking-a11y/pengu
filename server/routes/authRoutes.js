@@ -1,5 +1,5 @@
 import express from 'express';
-import { authUser, registerUser, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth } from '../controllers/userController.js';
+import { authUser, registerUser, getUserProfile, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth } from '../controllers/userController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
 
