@@ -28,6 +28,7 @@ import SocialSchema from './components/SocialSchema';
 import {
   ReviewsSection
 } from './ReviewsSection';
+import { TrustedInstitutions } from './components/TrustedInstitutions';
 
 // Verified HeroCarousel import
 export default function LandingPage() {
@@ -227,6 +228,9 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Trusted Institutions Section */}
+        <TrustedInstitutions />
 
         {/* FAQ Section */}
         <ReviewsSection />
