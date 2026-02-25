@@ -25,12 +25,11 @@ export default function StudentDashboard() {
   const { requests, orders, currentUser, skills, isInitialized, withdrawalRequests } = useStore();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
 
-  const credits = currentUser?.pengu_credits || 0;
-  const bdtValue = (credits / 100) * 120;
+  const bdtValue = currentUser?.balance || 0;
 
   const totalWithdrawn = withdrawalRequests
     .filter(r => r.studentId === currentUser?.id && (r.status === 'PAID' || r.status === 'APPROVED'))
-    .reduce((acc, curr) => acc + (curr.amount_credits || 0), 0);
+    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
 
   const activeRequests = requests
@@ -106,16 +105,16 @@ export default function StudentDashboard() {
                 </Link>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-stone-300 uppercase tracking-widest mb-1">Current Pool</p>
+                <p className="text-[10px] font-bold text-stone-300 uppercase tracking-widest mb-1">Total Balance</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black">{credits.toLocaleString()}</h3>
-                  <span className="text-sm font-medium text-stone-300">Credits</span>
+                  <span className="text-xl font-medium text-stone-300">৳</span>
+                  <h3 className="text-3xl font-black">{bdtValue.toLocaleString()}</h3>
+                  <span className="text-sm font-medium text-stone-300">BDT</span>
                 </div>
-                <p className="text-xs text-stone-400 mt-1 font-medium italic">≈ ৳{bdtValue.toLocaleString()} BDT</p>
               </div>
               <Button
                 onClick={() => setIsWithdrawModalOpen(true)}
-                disabled={credits < 500}
+                disabled={bdtValue < 600}
                 className="mt-4 w-full bg-white text-[#3E2723] hover:bg-stone-100 border-none font-bold rounded-xl shadow-lg active:scale-95 transition-all text-xs h-10 disabled:opacity-50"
               >
                 Withdraw Funds

@@ -29,7 +29,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
     }
 
     const amount = parseFloat(amount_local);
-    console.log(`[CPX Webhook] Parsed Amount: ${amount}, Current User Credits: ${user.pengu_credits}`);
+    console.log(`[CPX Webhook] Parsed Amount: ${amount}, Current User Balance: ${user.balance}`);
 
     // 3. Handle Status
     if (status === '2') {
@@ -40,7 +40,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
             // Atomic update: deduct credits
             const updatedUser = await User.findByIdAndUpdate(
                 user_id,
-                { $inc: { pengu_credits: -amount } },
+                { $inc: { balance: -amount } },
                 { new: true } // Return updated document
             );
 
@@ -50,7 +50,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
                 existingTx.description = `[REVERSED] ${existingTx.description}`;
                 await existingTx.save();
 
-                console.log(`[CPX Webhook] Reversal processed: ${updatedUser.name}, Balance: ${updatedUser.pengu_credits}`);
+                console.log(`[CPX Webhook] Reversal processed: ${updatedUser.name}, Balance: ${updatedUser.balance}`);
 
                 // Notify User via Socket
                 const io = getIO();
@@ -71,10 +71,10 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
         }
 
         try {
-            // Atomic update: add credits and total earned
+            // Atomic update: add balance and total earned
             const updatedUser = await User.findByIdAndUpdate(
                 user_id,
-                { $inc: { pengu_credits: amount, total_earned: amount } },
+                { $inc: { balance: amount, total_earned: amount } },
                 { new: true } // Return updated document
             );
 
@@ -82,7 +82,7 @@ const handleCPXWebhook = asyncHandler(async (req, res) => {
                 throw new Error('User not found during update');
             }
 
-            console.log(`[CPX Webhook] Credits added to ${updatedUser.email}, New Balance: ${updatedUser.pengu_credits}`);
+            console.log(`[CPX Webhook] Earned balance added to ${updatedUser.email}, New Balance: ${updatedUser.balance}`);
 
             // Create Transaction Record
             await Transaction.create({

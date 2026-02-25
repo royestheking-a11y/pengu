@@ -22,7 +22,8 @@ import {
   Mail,
   Rocket,
   Brain,
-  Sparkles
+  Sparkles,
+  Target
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
@@ -47,6 +48,7 @@ const MENU_ITEMS = {
   expert: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/expert/dashboard' },
     { icon: FileText, label: 'Active Orders', path: '/expert/orders' },
+    { icon: Sparkles, label: 'Partner Program', path: '/expert/earn' },
     { icon: Star, label: 'Client Feedback', path: '/expert/feedback' },
     { icon: MessageSquare, label: 'Messages', path: '/expert/messages' },
     { icon: CreditCard, label: 'Payouts', path: '/expert/payouts' },
@@ -54,6 +56,7 @@ const MENU_ITEMS = {
   ],
   admin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+    { icon: Target, label: 'Partner Leads', path: '/admin/leads' },
     { icon: FileText, label: 'Quote Requests', path: '/admin/requests' },
     { icon: Briefcase, label: 'Active Operations', path: '/admin/orders' },
     { icon: Users, label: 'Students', path: '/admin/students' },

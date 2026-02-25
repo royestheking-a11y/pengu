@@ -27,8 +27,7 @@ export default function WithdrawModal({ isOpen, onClose }: { isOpen: boolean; on
             reqDate >= startOfMonth;
     });
 
-    const credits = currentUser?.pengu_credits || 0;
-    const bdtValue = amount ? (parseInt(amount) / 100) * 120 : 0;
+    const bdtBalance = currentUser?.balance || 0;
 
     const nextCycleDate = new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString('en-US', {
         month: 'long',
@@ -51,13 +50,13 @@ export default function WithdrawModal({ isOpen, onClose }: { isOpen: boolean; on
             return;
         }
 
-        if (!amountNum || amountNum < 500) {
-            toast.error("Minimum withdrawal is 500 Credits");
+        if (!amountNum || amountNum < 600) {
+            toast.error("Minimum withdrawal is ৳600");
             return;
         }
 
-        if (amountNum > credits) {
-            toast.error("Insufficient credits");
+        if (amountNum > bdtBalance) {
+            toast.error("Insufficient balance");
             return;
         }
 
@@ -151,12 +150,8 @@ export default function WithdrawModal({ isOpen, onClose }: { isOpen: boolean; on
                             <form onSubmit={handleSubmit} className="p-8 space-y-6">
                                 <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 flex items-center justify-between">
                                     <div>
-                                        <Label className="text-amber-800 font-bold mb-1 block">Current Pool</Label>
-                                        <p className="text-3xl font-black text-amber-900">{credits.toLocaleString()} <span className="text-sm font-medium opacity-70">Credits</span></p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-amber-700/70 font-medium">Approx. BDT</p>
-                                        <p className="text-lg font-bold text-amber-900">৳{((credits / 100) * 120).toLocaleString()}</p>
+                                        <Label className="text-amber-800 font-bold mb-1 block">Total Balance</Label>
+                                        <p className="text-3xl font-black text-amber-900">৳{bdtBalance.toLocaleString()} <span className="text-sm font-medium opacity-70">BDT</span></p>
                                     </div>
                                 </div>
 
@@ -204,33 +199,27 @@ export default function WithdrawModal({ isOpen, onClose }: { isOpen: boolean; on
 
                                 <div className="space-y-2 relative">
                                     <Label className="text-stone-700 font-bold flex items-center gap-2">
-                                        Amount to Withdraw (Credits)
+                                        Amount to Withdraw (BDT)
                                     </Label>
                                     <Input
                                         type="number"
-                                        placeholder="Minimum 500"
+                                        placeholder="Minimum ৳600"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
                                         className="rounded-xl border-stone-200 h-12 pr-20 focus:ring-[#5D4037]"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setAmount(credits.toString())}
+                                        onClick={() => setAmount(Math.floor(bdtBalance).toString())}
                                         className="absolute right-3 top-[34px] text-xs font-bold text-[#5D4037] hover:underline"
                                     >
                                         MAX
                                     </button>
-                                    {amount && (
-                                        <p className="text-xs text-stone-500 mt-1 flex justify-between px-1">
-                                            <span>Equivalent to: <span className="font-bold text-green-600">৳{bdtValue.toLocaleString()}</span></span>
-                                            <span>Rate: 100c = ৳120</span>
-                                        </p>
-                                    )}
                                 </div>
 
                                 <Button
                                     type="submit"
-                                    disabled={isProcessing || !amount || parseInt(amount) < 500}
+                                    disabled={isProcessing || !amount || parseInt(amount) < 600}
                                     className="w-full h-14 text-lg rounded-2xl bg-[#5D4037] hover:bg-[#3E2723] shadow-lg shadow-[#5D4037]/20 disabled:opacity-50 transition-all font-bold"
                                 >
                                     {isProcessing ? 'Processing...' : 'Request Withdrawal'}

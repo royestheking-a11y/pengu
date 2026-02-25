@@ -117,7 +117,7 @@ export default function AdminPayments() {
         .filter(r => r.status === 'PENDING' || r.status === 'CONFIRMED')
         .reduce((sum, r) => sum + r.amount, 0);
 
-    const totalStudentArcadeBalance = (users.filter(u => u.role === 'student').reduce((sum, u) => sum + (u.pengu_credits || 0), 0) / 100) * 120;
+    const totalStudentArcadeBalance = users.filter(u => u.role === 'student').reduce((sum, u) => sum + (u.balance || 0), 0);
 
     // netPlatformLiquidity = Verified Income - Processed Payouts
     const netPlatformLiquidity = totalRevenue - totalPayouts;
@@ -164,7 +164,7 @@ export default function AdminPayments() {
             toast.success("Withdrawal approved and paid");
         } else if (studentWithdrawModal.type === 'reject') {
             rejectStudentWithdrawal(studentWithdrawModal.withdrawalId);
-            toast.success("Withdrawal rejected and credits refunded");
+            toast.success("Withdrawal rejected and funds refunded");
         }
 
         setStudentWithdrawModal({ open: false, type: null, withdrawalId: null, studentName: null, amount: null });
@@ -464,7 +464,7 @@ export default function AdminPayments() {
                         <Card className="overflow-hidden border-stone-200">
                             <div className="p-6 border-b border-stone-100 flex items-center justify-between bg-indigo-50/30">
                                 <h3 className="font-bold text-stone-900 flex items-center gap-2">
-                                    <Sparkles className="size-4 text-indigo-600" /> Pending Arcade Withdrawals (Students)
+                                    <Sparkles className="size-4 text-indigo-600" /> Pending Withdrawals (Students)
                                 </h3>
                             </div>
                             <div className="overflow-x-auto">
@@ -488,7 +488,6 @@ export default function AdminPayments() {
                                                     <td className="px-6 py-4 font-medium text-stone-900">Student ID: {req.studentId?.slice(-6)}</td>
                                                     <td className="px-6 py-4 text-stone-900 font-bold">
                                                         TK {(req.amount || 0).toLocaleString()}
-                                                        <span className="text-[10px] text-stone-400 ml-1">({req.amount_credits}c)</span>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${req.method === 'bKash' ? 'bg-[#D12053]/10 text-[#D12053]' : 'bg-[#FAAB1A]/10 text-[#FAAB1A]'
@@ -610,9 +609,9 @@ export default function AdminPayments() {
                                                 </td>
                                                 <td className="px-6 py-4 text-stone-500 max-w-xs truncate">
                                                     <span className={`text-[10px] font-bold mr-2 uppercase px-1.5 py-0.5 rounded ${tx.type === 'STUDENT_EARNING' ? 'bg-indigo-100 text-indigo-700' :
-                                                            tx.type === 'COMMISSION' ? 'bg-blue-100 text-blue-700' :
-                                                                tx.type === 'INCOME' ? 'bg-green-100 text-green-700' :
-                                                                    'bg-stone-100 text-stone-600'
+                                                        tx.type === 'COMMISSION' ? 'bg-blue-100 text-blue-700' :
+                                                            tx.type === 'INCOME' ? 'bg-green-100 text-green-700' :
+                                                                'bg-stone-100 text-stone-600'
                                                         }`}>
                                                         {tx.type === 'STUDENT_EARNING' ? 'Arcade' : 'Service'}
                                                     </span>
@@ -670,7 +669,7 @@ export default function AdminPayments() {
                                 </>
                             ) : (
                                 <>
-                                    Are you sure you want to reject this withdrawal request? The credits will be <strong>refunded</strong> to the student's balance.
+                                    Are you sure you want to reject this withdrawal request? The funds will be <strong>refunded</strong> to the student's balance.
                                 </>
                             )}
                         </AlertDialogDescription>

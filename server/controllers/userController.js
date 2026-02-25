@@ -105,7 +105,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
             avatar: user.avatar,
             bio: user.bio,
             phone: user.phone,
-            pengu_credits: user.pengu_credits,
+            balance: user.balance,
             total_earned: user.total_earned,
             onboardingCompleted: user.onboardingCompleted
         });

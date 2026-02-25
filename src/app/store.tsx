@@ -27,7 +27,7 @@ export interface User {
   onboardingCompleted?: boolean;
   bio?: string;
   phone?: string;
-  pengu_credits?: number;
+  balance?: number;
   total_earned?: number;
 }
 
@@ -192,7 +192,6 @@ export interface WithdrawalRequest {
   expertId?: string;
   studentId?: string;
   amount: number;
-  amount_credits?: number;
   method?: string;
   phone_number?: string;
   methodId?: string;
@@ -298,7 +297,7 @@ interface StoreData {
   addPayoutMethod: (expertId: string, method: Omit<PayoutMethod, 'id'>) => void; // Pending real implementation
   removePayoutMethod: (expertId: string, methodId: string) => void; // Pending
   requestWithdrawal: (expertId: string, amount: number, methodId: string) => Promise<void>;
-  requestStudentWithdrawal: (amountCredits: number, method: string, phoneNumber: string) => Promise<void>;
+  requestStudentWithdrawal: (amount: number, method: string, phoneNumber: string) => Promise<void>;
   approveStudentWithdrawal: (withdrawalId: string) => Promise<void>;
   rejectStudentWithdrawal: (withdrawalId: string) => Promise<void>;
   updateWithdrawalStatus: (reqId: string, status: WithdrawalRequest['status']) => Promise<void>;
@@ -590,7 +589,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (currentUser && (data._id === currentUser.id || data.id === currentUser.id)) {
           const updatedUser = { ...data, id: data._id || data.id };
           setCurrentUser(updatedUser);
-          toast.success("Credits added successfully!");
+          toast.success("Funds added successfully!");
         }
       };
 
@@ -1134,9 +1133,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch (e) { toast.error("Failed update"); }
   };
 
-  const requestStudentWithdrawal = async (amountCredits: number, method: string, phoneNumber: string) => {
+  const requestStudentWithdrawal = async (amount: number, method: string, phoneNumber: string) => {
     try {
-      const { data } = await api.post('/withdrawals/student/request', { amountCredits, method, phoneNumber });
+      const { data } = await api.post('/withdrawals/student/request', { amount, method, phoneNumber });
       const mappedData = { ...data, id: data._id || data.id };
       setWithdrawalRequests(prev => [mappedData, ...prev]);
 
@@ -1144,7 +1143,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (currentUser) {
         setCurrentUser({
           ...currentUser,
-          pengu_credits: (currentUser.pengu_credits || 0) - amountCredits
+          balance: (currentUser.balance || 0) - amount
         });
       }
       toast.success("Withdrawal requested successfully!");
@@ -1179,11 +1178,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (currentUser && data.studentId === currentUser.id) {
         setCurrentUser({
           ...currentUser,
-          pengu_credits: (currentUser.pengu_credits || 0) + data.amount_credits
+          balance: (currentUser.balance || 0) + data.amount
         });
       }
 
-      toast.success("Withdrawal rejected and credits refunded");
+      toast.success("Withdrawal rejected and funds refunded");
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Failed to reject withdrawal");
     }

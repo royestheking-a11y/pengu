@@ -38,6 +38,7 @@ import AdminUniversalSolutions from './AdminUniversalSolutions';
 import EarnPage from './EarnPage';
 
 import AdminOrders from './AdminOrders';
+import AdminLeadManager from './AdminLeadManager';
 
 import AdminOrderDetails from './AdminOrderDetails';
 import AdminStudents from './AdminStudents';
@@ -177,6 +178,7 @@ export default function App() {
 
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
+            <Route path="/admin/leads" element={<AdminRouteGuard><AdminLeadManager /></AdminRouteGuard>} />
             <Route path="/admin/requests" element={<AdminRouteGuard><AdminRequests /></AdminRouteGuard>} />
             <Route path="/admin/request/:id" element={<AdminRouteGuard><AdminRequest /></AdminRouteGuard>} />
             <Route path="/admin/orders" element={<AdminRouteGuard><AdminOrders /></AdminRouteGuard>} />
@@ -201,6 +203,7 @@ export default function App() {
             <Route path="/expert/orders" element={<ExpertRouteGuard><ExpertOrders /></ExpertRouteGuard>} />
             <Route path="/expert/order/:id" element={<ExpertRouteGuard><ExpertOrderDetails /></ExpertRouteGuard>} />
             <Route path="/expert/feedback" element={<ExpertRouteGuard><ExpertFeedback /></ExpertRouteGuard>} />
+            <Route path="/expert/earn" element={<ExpertRouteGuard><EarnPage /></ExpertRouteGuard>} />
             <Route path="/expert/payouts" element={<ExpertRouteGuard><ExpertPayouts /></ExpertRouteGuard>} />
             <Route path="/expert/messages" element={<ExpertRouteGuard><Messages /></ExpertRouteGuard>} />
             <Route path="/expert/settings" element={<ExpertRouteGuard><Settings /></ExpertRouteGuard>} />

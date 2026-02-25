@@ -157,17 +157,17 @@ const updateWithdrawalStatus = asyncHandler(async (req, res) => {
 // @route   POST /api/withdrawals/student/request
 // @access  Private/Student
 const requestStudentWithdrawal = asyncHandler(async (req, res) => {
-    const { amountCredits, method, phoneNumber } = req.body;
+    const { amount, method, phoneNumber } = req.body;
     const user = await User.findById(req.user._id);
 
-    if (amountCredits < 500) {
+    if (amount < 600) {
         res.status(400);
-        throw new Error('Minimum withdrawal is 500 Credits');
+        throw new Error('Minimum withdrawal is ৳600');
     }
 
-    if (user.pengu_credits < amountCredits) {
+    if (user.balance < amount) {
         res.status(400);
-        throw new Error('Insufficient credits');
+        throw new Error('Insufficient balance');
     }
 
     // Enforce Monthly Cycle: Check if student has already withdrawn this month
@@ -186,16 +186,12 @@ const requestStudentWithdrawal = asyncHandler(async (req, res) => {
         throw new Error('You can only withdraw once per month. Your next cycle begins on the 1st of next month.');
     }
 
-    // Convert to BDT: Credits / 100 * 120
-    const amountBDT = (amountCredits / 100) * 120;
-
-    user.pengu_credits -= amountCredits;
+    user.balance -= amount;
     await user.save();
 
     const withdrawal = await Withdrawal.create({
         studentId: user._id,
-        amount: amountBDT,
-        amount_credits: amountCredits,
+        amount: amount,
         method,
         phone_number: phoneNumber,
         status: 'PENDING'
@@ -203,7 +199,7 @@ const requestStudentWithdrawal = asyncHandler(async (req, res) => {
 
     await notifyAdmins(
         'New Student Withdrawal Request',
-        `Student ${user.name} requested withdrawal of ৳${amountBDT}. Method: ${method}`,
+        `Student ${user.name} requested withdrawal of ৳${amount}. Method: ${method}`,
         'warning',
         '/admin/payments'
     );
@@ -265,10 +261,10 @@ const rejectStudentWithdrawal = asyncHandler(async (req, res) => {
     withdrawal.status = 'REJECTED';
     await withdrawal.save();
 
-    // Refund credits to user
+    // Refund balance to user
     const user = await User.findById(withdrawal.studentId);
     if (user) {
-        user.pengu_credits += withdrawal.amount_credits;
+        user.balance += withdrawal.amount;
         await user.save();
     }
 

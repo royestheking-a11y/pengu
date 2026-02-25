@@ -134,7 +134,7 @@ export default function AdminStudents() {
                     <th className="px-4 py-3 rounded-tl-xl text-[#3E2723]">Student</th>
                     <th className="px-4 py-3 text-[#3E2723]">Status</th>
                     <th className="px-4 py-3 text-[#3E2723]">Joined</th>
-                    <th className="px-4 py-3 text-[#3E2723]">Credits</th>
+                    <th className="px-4 py-3 text-[#3E2723]">Balance</th>
                     <th className="px-4 py-3 text-[#3E2723]">Orders</th>
                     <th className="px-4 py-3 rounded-tr-xl text-right text-[#3E2723]">Actions</th>
                   </tr>
@@ -170,7 +170,7 @@ export default function AdminStudents() {
                         {format(new Date(student.joinedAt), 'MMM d, yyyy')}
                       </td>
                       <td className="px-4 py-4 text-stone-600 font-bold">
-                        {(student.pengu_credits || 0).toLocaleString()} <span className="text-[10px] font-medium opacity-50">c</span>
+                        ৳{(student.balance || 0).toLocaleString()}
                       </td>
                       <td className="px-4 py-4 text-stone-600 font-medium">
                         {getStudentOrdersCount(student.id)}
@@ -324,12 +324,12 @@ export default function AdminStudents() {
                   </div>
                   <div className="flex gap-4">
                     <div>
-                      <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Credits</p>
-                      <p className="font-bold text-amber-300">{(selectedStudent.pengu_credits || 0).toLocaleString()}</p>
+                      <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Balance</p>
+                      <p className="font-bold text-amber-300">৳{(selectedStudent.balance || 0).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-white/40 text-xs uppercase tracking-wider font-bold mb-1">Lifetime Earned</p>
-                      <p className="font-bold text-green-400">{(selectedStudent.total_earned || 0).toLocaleString()}</p>
+                      <p className="font-bold text-green-400">৳{((selectedStudent.total_earned || 0) * 1.2).toLocaleString()}</p>
                     </div>
                   </div>
                 </div>

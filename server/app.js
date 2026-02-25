@@ -97,6 +97,7 @@ import careerTemplateRoutes from './routes/careerTemplateRoutes.js';
 import careerAccelerationRoutes from './routes/careerAccelerationRoutes.js';
 import studyToolsRoutes from './routes/studyToolsRoutes.js';
 import universalTicketRoutes from './routes/universalTicketRoutes.js';
+import leadRoutes from './routes/leadRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
@@ -121,6 +122,7 @@ app.use('/api/career-acceleration', careerAccelerationRoutes);
 app.use('/api/career-templates', careerTemplateRoutes);
 app.use('/api/study-tools', studyToolsRoutes);
 app.use('/api/universal-tickets', universalTicketRoutes);
+app.use('/api/leads', leadRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
