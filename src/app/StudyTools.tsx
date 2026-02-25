@@ -470,7 +470,7 @@ export default function StudyTools() {
                             <div className="size-8 bg-[#5D4037] rounded-xl flex items-center justify-center">
                                 <Brain className="size-4 text-white" />
                             </div>
-                            <span className="text-[10px] font-bold text-[#5D4037] uppercase tracking-widest">Powered by Groq AI</span>
+                            <span className="text-[10px] font-bold text-[#5D4037] uppercase tracking-widest">Powered by Pengu AI</span>
                         </div>
                         <h1 className="text-2xl font-black text-[#3E2723]">AI Study Tools</h1>
                         <p className="text-stone-500 text-sm mt-1">Your personal AI tutor — quizzes, explanations, and exam prep on demand.</p>
