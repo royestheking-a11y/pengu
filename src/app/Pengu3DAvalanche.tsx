@@ -429,7 +429,7 @@ export default function Pengu3DAvalanche() {
     const [startTime, setStartTime] = useState(Date.now());
     const [eggs, setEggs] = useState(0);
 
-    const { currentUser } = useStore();
+    const { currentUser, refreshUser } = useStore();
     const navigate = useNavigate();
 
     // Mobile control triggers
@@ -447,16 +447,24 @@ export default function Pengu3DAvalanche() {
         if (!currentUser) return; // Don't submit for guests
 
         try {
+            const token = (JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token);
             const duration = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
+
+            const config = {
+                headers: { Authorization: `Bearer ${token}` }
+            };
+
             await api.post('/games/submit-score', {
                 gameId: 'pengu-3d',
                 score,
                 coinsCollected: coins,
                 sessionDurationSeconds: duration
-            });
-            // Score submitted successfully
-        } catch (error) {
-            console.error("Failed to submit score", error);
+            }, config);
+
+            // Score submitted successfully, refresh wallet immediately
+            await refreshUser();
+        } catch (error: any) {
+            console.error("Failed to submit score", error.response?.data || error.message);
         }
     };
 

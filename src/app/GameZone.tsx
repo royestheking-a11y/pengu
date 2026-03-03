@@ -40,7 +40,9 @@ export default function GameZone() {
 
     const fetchLeaderboard = async () => {
         try {
-            const { data } = await api.get('/games/leaderboard/pengu-3d');
+            const token = JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token;
+            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+            const { data } = await api.get('/games/leaderboard/pengu-3d', config);
             console.log("Leaderboard data received:", data); // Debug logging
             setLeaderboard(data);
         } catch (error) {
