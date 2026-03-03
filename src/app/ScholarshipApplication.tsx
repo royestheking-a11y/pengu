@@ -19,7 +19,7 @@ import { Button } from './components/ui/button';
 import { Card } from './components/ui/card';
 import { Badge } from './components/ui/badge';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '../lib/api';
 import { useStore } from './store';
 import { Skeleton } from './components/ui/skeleton';
 import { DashboardLayout } from './components/Layout';

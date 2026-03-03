@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../lib/api';
 import DOMPurify from 'dompurify';
 import { toast } from 'sonner';
 import { useStore } from './store';
@@ -42,7 +42,7 @@ export default function ScholarshipDetails() {
         const fetchScholarship = async () => {
             try {
                 // Fetch public scholarship data
-                const response = await axios.get(`/api/scholarships/${id}`);
+                const response = await api.get(`/scholarships/${id}`);
                 setScholarship(response.data);
             } catch (error) {
                 toast.error('Failed to load scholarship details');
@@ -72,9 +72,9 @@ export default function ScholarshipDetails() {
             // Standard order creation. Wait, the backend currently accepts quote requests or direct orders.
             // A request for quote is just status: 'SUBMITTED'. Since this is a premium funnel, the fee is known.
             // But we still create a request that bypasses the "Quote Needs Approval" phase, or we just let it go for quote approval automatically.
-            await axios.post(`/api/scholarships/${scholarship._id}/apply`, {
-                cgpa: parseFloat(cgpa),
-                ielts: parseFloat(ielts) || null,
+            await api.post(`/scholarships/${scholarship._id}/apply`, {
+                cgpa: parseFloat(cgpa || '0'),
+                ielts: parseFloat(ielts || '0'),
                 major: intakeMajor
             }, config);
 

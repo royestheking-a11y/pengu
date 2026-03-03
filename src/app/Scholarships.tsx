@@ -23,7 +23,7 @@ import { Input } from './components/ui/input';
 import { Badge } from './components/ui/badge';
 import { PublicLayout } from './components/Layout';
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '../lib/api';
 import { useStore } from './store';
 import { Link, useNavigate } from 'react-router-dom';
 import { ScholarshipCardSkeleton } from './components/ScholarshipSkeletons';
@@ -84,7 +84,7 @@ export function Scholarships() {
             const config = {
                 headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` }
             };
-            const response = await axios.get('/api/scholarships', config);
+            const response = await api.get('/scholarships', config);
             setScholarships(response.data);
         } catch (error) {
             console.error('Error fetching scholarships:', error);
@@ -138,7 +138,7 @@ export function Scholarships() {
                 headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` }
             };
 
-            await axios.post(`/api/scholarships/${selectedScholarship?._id}/apply`, {
+            await api.post(`/scholarships/${selectedScholarship?._id}/apply`, {
                 cgpa: parseFloat(cgpa || '0'),
                 ielts: parseFloat(ielts || '0'),
                 major: intakeMajor

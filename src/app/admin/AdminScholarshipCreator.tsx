@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../lib/api';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { toast } from 'sonner';
@@ -56,7 +56,7 @@ export default function AdminScholarshipCreator() {
         setIsFetching(true);
         try {
             const token = (JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token);
-            const response = await axios.get(`/api/scholarships/${id}`, {
+            const response = await api.get(`/scholarships/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const s = response.data;
@@ -89,7 +89,7 @@ export default function AdminScholarshipCreator() {
         try {
             const token = (JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token);
             // Using standard Cloudinary upload route
-            const response = await axios.post('/api/upload', formData, {
+            const response = await api.post('/upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`,
@@ -133,12 +133,12 @@ export default function AdminScholarshipCreator() {
             };
 
             if (id) {
-                await axios.put(`/api/scholarships/${id}`, data, {
+                await api.put(`/scholarships/${id}`, data, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 toast.success(`Scholarship updated and ${status.toLowerCase()} successfully!`);
             } else {
-                await axios.post('/api/scholarships', data, {
+                await api.post('/scholarships', data, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 toast.success(`Scholarship ${status.toLowerCase()} created successfully!`);

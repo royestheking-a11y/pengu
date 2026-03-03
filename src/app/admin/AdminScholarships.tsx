@@ -32,7 +32,7 @@ import {
     AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { toast } from 'sonner';
-import axios from 'axios';
+import api from '../../lib/api';
 import { DashboardLayout } from '../components/Layout';
 import { useStore } from '../store';
 
@@ -75,7 +75,7 @@ export default function AdminScholarships() {
         try {
             const config = { headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` } };
             // Passing admin=true to the controller to get ALL statuses, not just PUBLISHED
-            const response = await axios.get('/api/scholarships?admin=true', config);
+            const response = await api.get('/scholarships?admin=true', config);
             setScholarships(response.data);
         } catch (error) {
             toast.error('Failed to fetch scholarships');
@@ -95,8 +95,10 @@ export default function AdminScholarships() {
 
     const saveEdit = async () => {
         try {
-            const config = { headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` } };
-            const response = await axios.put(`/api/scholarships/${editingId}`, editFormData, config);
+            const config = {
+                headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` }
+            };
+            const response = await api.put(`/scholarships/${editingId}`, editFormData, config);
 
             setScholarships(scholarships.map(s => s._id === editingId ? response.data : s));
             setEditingId(null);
@@ -127,7 +129,7 @@ export default function AdminScholarships() {
                 status: 'DRAFT'
             };
 
-            const response = await axios.post('/api/scholarships', newDraft, config);
+            const response = await api.post('/scholarships', newDraft, config);
             setScholarships([response.data, ...scholarships]);
             startEdit(response.data);
             toast.success('New draft created. Please edit details.');
@@ -158,7 +160,7 @@ export default function AdminScholarships() {
             // @ts-ignore - removing _id
             delete duplicateData._id;
 
-            const response = await axios.post('/api/scholarships', duplicateData, config);
+            const response = await api.post('/scholarships', duplicateData, config);
             setScholarships([response.data, ...scholarships]);
             toast.success('Scholarship duplicated as DRAFT');
         } catch (error) {
@@ -175,7 +177,8 @@ export default function AdminScholarships() {
         if (!scholarshipToDelete) return;
         try {
             const config = { headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` } };
-            await axios.delete(`/api/scholarships/${scholarshipToDelete}`, config);
+
+            await api.delete(`/scholarships/${scholarshipToDelete}`, config);
             setScholarships(prev => prev.filter(s => s._id !== scholarshipToDelete));
             toast.success('Scholarship deleted');
         } catch (error) {
@@ -189,7 +192,10 @@ export default function AdminScholarships() {
     const updateStatus = async (id: string, newStatus: string) => {
         try {
             const config = { headers: { Authorization: `Bearer ${(JSON.parse(localStorage.getItem('pengu_final_v4_user') || '{}')?.token)}` } };
-            const response = await axios.put(`/api/scholarships/${id}`, { status: newStatus }, config);
+
+            const response = await api.put(`/scholarships/${id}`, { status: newStatus }, config);
+
+            // Directly update UI with returned accurate document
             setScholarships(scholarships.map(s => s._id === id ? response.data : s));
             toast.success(`Scholarship marked as ${newStatus}`);
         } catch (error) {
