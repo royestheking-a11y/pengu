@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
+import User from '../models/userModel.js';
 import Expert from '../models/expertModel.js';
 import Transaction from '../models/transactionModel.js';
 import Request from '../models/requestModel.js';
@@ -58,6 +59,18 @@ const getOrderById = asyncHandler(async (req, res) => {
 const createOrder = asyncHandler(async (req, res) => {
     const { requestId, topic, serviceType, files, amount, paymentMethod, transactionId, milestones } = req.body;
 
+    const isBalancePayment = paymentMethod === 'BALANCE';
+    if (isBalancePayment) {
+        const user = await User.findById(req.user._id);
+        if (user.balance < amount) {
+            res.status(400);
+            throw new Error('Insufficient Pengu Balance. Play more games to earn coins!');
+        }
+        // Deduct balance
+        user.balance -= amount;
+        await user.save();
+    }
+
     const order = new Order({
         studentId: req.user._id,
         requestId,
@@ -66,9 +79,10 @@ const createOrder = asyncHandler(async (req, res) => {
         amount,
         files,
         paymentMethod,
-        transactionId,
-        paymentStatus: 'PENDING', // Force manual verification
-        status: 'PENDING_VERIFICATION',
+        transactionId: isBalancePayment ? `COIN-TX-${Date.now()}` : transactionId,
+        paymentStatus: isBalancePayment ? 'VERIFIED' : 'PENDING',
+        status: isBalancePayment ? 'PAID_CONFIRMED' : 'PENDING_VERIFICATION',
+        isVirtualPayment: isBalancePayment,
         milestones: milestones.map(m => ({ title: m, status: 'PENDING' }))
     });
 
@@ -140,6 +154,11 @@ const updateOrder = asyncHandler(async (req, res) => {
             const platformFeePercent = commissionRate / 100;
             const platformProfit = Math.round(order.amount * platformFeePercent);
             const earningAmount = order.amount - platformProfit;
+
+            // If it's a virtual payment, we don't count it towards "real" business income
+            // but the expert still gets credited "virtually" or via system funds.
+            // For now, we proceed as normal but the 'isVirtualPayment' flag on Order 
+            // will allow us to filter reports.
 
             // 2. Update Expert Balance
             const expert = await Expert.findOne({ userId: order.expertId });

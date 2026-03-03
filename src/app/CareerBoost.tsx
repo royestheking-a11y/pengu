@@ -7,8 +7,6 @@ import {
     Zap,
     Mail,
     TrendingUp,
-    AlertCircle,
-    CheckCircle2,
     Copy,
     Download,
     Terminal,
@@ -19,7 +17,13 @@ import {
     RefreshCw,
     Briefcase,
     X,
-    FileJson
+    FileJson,
+    UserCircle,
+    BrainCircuit,
+    ShieldAlert,
+    Lightbulb,
+    AlertCircle,
+    CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from './components/Layout';
@@ -32,7 +36,9 @@ const CareerBoost = () => {
     const [jdText, setJdText] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [result, setResult] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState('match'); // 'match', 'optimize', 'email'
+    const [interviewPrep, setInterviewPrep] = useState<any>(null);
+    const [isGeneratingPrep, setIsGeneratingPrep] = useState(false);
+    const [activeTab, setActiveTab] = useState('match'); // 'match', 'optimize', 'email', 'interview'
 
     // Email states
     const [emailTone, setEmailTone] = useState('Confident');
@@ -40,6 +46,7 @@ const CareerBoost = () => {
     const [generatedEmail, setGeneratedEmail] = useState('');
     const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
     const [optimizationImprovements, setOptimizationImprovements] = useState<any[]>([]);
+    const [isOptimizing, setIsOptimizing] = useState(false);
 
     const handleAnalyze = async () => {
         if (!cvText || !jdText) {
@@ -62,6 +69,7 @@ const CareerBoost = () => {
 
     const handleOptimize = async () => {
         const toastId = toast.loading("Optimizing your CV for maximum impact...");
+        setIsOptimizing(true);
         try {
             const response = await api.post('/career-acceleration/optimize', { cvText });
             const data = response.data;
@@ -75,6 +83,8 @@ const CareerBoost = () => {
         } catch (error) {
             console.error("Optimization Error:", error);
             toast.error("Failed to optimize CV", { id: toastId });
+        } finally {
+            setIsOptimizing(false);
         }
     };
 
@@ -95,6 +105,25 @@ const CareerBoost = () => {
             toast.error("Failed to generate application email", { id: toastId });
         } finally {
             setIsGeneratingEmail(false);
+        }
+    };
+
+    const handleGeneratePrep = async () => {
+        if (!cvText || !jdText) {
+            toast.error("Analysis data required for high-quality interview preparation.");
+            return;
+        }
+        setIsGeneratingPrep(true);
+        const toastId = toast.loading("AI is constructing your tailored Interview Kit...");
+        try {
+            const response = await api.post('/career-acceleration/prepare-interview', { cvText, jdText });
+            setInterviewPrep(response.data);
+            toast.success("Interview Preparation Kit Ready!", { id: toastId });
+        } catch (error) {
+            console.error("Prep Generation Error:", error);
+            toast.error("Failed to generate interview kit", { id: toastId });
+        } finally {
+            setIsGeneratingPrep(false);
         }
     };
 
@@ -355,6 +384,15 @@ const CareerBoost = () => {
                                 </span>
                                 {activeTab === 'email' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#5D4037] rounded-full" />}
                             </button>
+                            <button
+                                onClick={() => setActiveTab('interview')}
+                                className={`pb-4 text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === 'interview' ? 'text-[#5D4037]' : 'text-stone-400'}`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <BrainCircuit className="size-4" /> Interview Preparation
+                                </span>
+                                {activeTab === 'interview' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-1 bg-[#5D4037] rounded-full" />}
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -430,9 +468,15 @@ const CareerBoost = () => {
                                             <div className="p-4 bg-[#5D4037]/5 rounded-xl border border-[#5D4037]/10">
                                                 <div className="flex items-start gap-3">
                                                     <Sparkles className="size-5 text-[#5D4037] mt-1" />
-                                                    <p className="text-sm text-stone-700 leading-relaxed italic">
-                                                        "Your profile shows strong technical alignment, but it's currently buried under generic descriptors. Use **Action-Metric** verbs to increase your visibility by up to 40%."
-                                                    </p>
+                                                    <div className="text-sm text-stone-700 leading-relaxed italic space-y-2">
+                                                        {result.suggestions && result.suggestions.length > 0 ? (
+                                                            result.suggestions.slice(0, 2).map((s: string, idx: number) => (
+                                                                <p key={idx}>"{s}"</p>
+                                                            ))
+                                                        ) : (
+                                                            <p>"Your profile shows strong technical alignment. Use **Action-Metric** verbs to increase your visibility by up to 40%."</p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -456,29 +500,49 @@ const CareerBoost = () => {
                                             </button>
                                         </div>
                                         <div className="p-6 space-y-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
-                                                    <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">BEFORE (Standard)</p>
-                                                    <p className="text-sm text-stone-600 italic">"Worked on website design."</p>
+                                            {isOptimizing ? (
+                                                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                                                    <RefreshCw className="size-10 text-[#5D4037] animate-spin" />
+                                                    <p className="font-bold text-stone-400 uppercase tracking-widest text-xs">AI is rewriting your legacy bullets...</p>
                                                 </div>
-                                                <div className="p-4 bg-green-50/50 rounded-xl border border-green-100 relative group">
-                                                    <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">AFTER (Optimized)</p>
-                                                    <p className="text-sm text-stone-900 font-medium">"Designed and developed 5 responsive websites using React and Figma, improving user engagement by 32%."</p>
-                                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Sparkles className="size-3 text-green-500 animate-pulse" />
+                                            ) : optimizationImprovements.length > 0 ? (
+                                                <div className="space-y-4">
+                                                    {optimizationImprovements.slice(0, 4).map((imp, idx) => (
+                                                        <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
+                                                            <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
+                                                                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">BEFORE (Standard)</p>
+                                                                <p className="text-sm text-stone-600 italic">"{imp.from}"</p>
+                                                            </div>
+                                                            <div className="p-4 bg-green-50/50 rounded-xl border border-green-100 relative group">
+                                                                <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">AFTER (Optimized)</p>
+                                                                <p className="text-sm text-stone-900 font-medium">{imp.to}</p>
+                                                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Sparkles className="size-3 text-green-500 animate-pulse" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-40 grayscale">
+                                                    <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
+                                                        <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">BEFORE (Standard)</p>
+                                                        <p className="text-sm text-stone-600 italic">"Worked on website design."</p>
+                                                    </div>
+                                                    <div className="p-4 bg-green-50/50 rounded-xl border border-green-100 relative group">
+                                                        <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">AFTER (Optimized)</p>
+                                                        <p className="text-sm text-stone-900 font-medium">"Designed and developed 5 responsive websites using React and Figma, improving user engagement by 32%."</p>
+                                                    </div>
+                                                    <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
+                                                        <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">BEFORE (Standard)</p>
+                                                        <p className="text-sm text-stone-600 italic">"Responsible for team management."</p>
+                                                    </div>
+                                                    <div className="p-4 bg-green-50/50 rounded-xl border border-green-100">
+                                                        <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">AFTER (Optimized)</p>
+                                                        <p className="text-sm text-stone-900 font-medium">"Spearheaded a cross-functional team of 8 to deliver project milestones 2 weeks ahead of schedule."</p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
-                                                    <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">BEFORE (Standard)</p>
-                                                    <p className="text-sm text-stone-600 italic">"Responsible for team management."</p>
-                                                </div>
-                                                <div className="p-4 bg-green-50/50 rounded-xl border border-green-100">
-                                                    <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-2">AFTER (Optimized)</p>
-                                                    <p className="text-sm text-stone-900 font-medium">"Spearheaded a cross-functional team of 8 to deliver project milestones 2 weeks ahead of schedule."</p>
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
                                         <div className="bg-stone-50 p-4 border-t border-stone-100 flex justify-between items-center">
                                             <div className="flex gap-2">
@@ -499,116 +563,271 @@ const CareerBoost = () => {
                                         </div>
                                     </Card>
                                 )}
-
                                 {activeTab === 'email' && (
-                                    <Card className="p-6 border-stone-200">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h3 className="font-bold text-stone-900 flex items-center gap-2">
-                                                <Mail className="size-5 text-purple-600" /> AI Mail Generator
-                                            </h3>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        if (generatedEmail) {
-                                                            navigator.clipboard.writeText(generatedEmail);
-                                                            toast.success("Email copied!");
-                                                        }
-                                                    }}
-                                                    className="p-2 border border-stone-200 rounded-lg hover:bg-stone-50" title="Copy Text"
-                                                >
-                                                    <Copy className="size-4 text-stone-600" />
-                                                </button>
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+                                        <Card className="p-6 border-stone-200">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                                                <div>
+                                                    <h3 className="font-bold text-stone-900 flex items-center gap-2">
+                                                        <Mail className="size-5 text-[#5D4037]" /> AI Application Mailer
+                                                    </h3>
+                                                    <p className="text-stone-500 text-sm mt-1">Generate a high-conversion application email tailored to this role.</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        value={emailTone}
+                                                        onChange={(e) => setEmailTone(e.target.value)}
+                                                        className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20"
+                                                    >
+                                                        <option>Confident</option>
+                                                        <option>Formal</option>
+                                                        <option>Friendly</option>
+                                                        <option>Startup</option>
+                                                    </select>
+                                                    <select
+                                                        value={emailLength}
+                                                        onChange={(e) => setEmailLength(e.target.value)}
+                                                        className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20"
+                                                    >
+                                                        <option>Short</option>
+                                                        <option>Medium</option>
+                                                        <option>Detailed</option>
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-                                            {['Formal', 'Confident', 'Friendly', 'Startup'].map(tone => (
-                                                <button
-                                                    key={tone}
-                                                    onClick={() => setEmailTone(tone)}
-                                                    className={`p-3 border-2 rounded-xl text-center transition-all ${emailTone === tone ? 'border-[#5D4037]/20 bg-[#5D4037]/5 text-[#5D4037]' : 'border-stone-100 hover:border-stone-200 bg-stone-50/50 text-stone-700'}`}
-                                                >
-                                                    <p className="text-[10px] font-bold uppercase mb-1">TONE</p>
-                                                    <p className="text-sm font-bold uppercase">{tone}</p>
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <div className="grid grid-cols-3 gap-3 mb-6">
-                                            {['Short', 'Medium', 'Detailed'].map(len => (
-                                                <button
-                                                    key={len}
-                                                    onClick={() => setEmailLength(len)}
-                                                    className={`p-3 border-2 rounded-xl text-center transition-all ${emailLength === len ? 'border-[#5D4037]/20 bg-[#5D4037]/5 text-[#5D4037]' : 'border-stone-100 hover:border-stone-200 bg-stone-50/50 text-stone-700'}`}
-                                                >
-                                                    <p className="text-[10px] font-bold uppercase mb-1">LENGTH</p>
-                                                    <p className="text-sm font-bold uppercase">{len}</p>
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <button
-                                            onClick={handleGenerateEmail}
-                                            disabled={isGeneratingEmail}
-                                            className="w-full mb-6 py-3 bg-[#5D4037] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#4E342E] transition-all disabled:opacity-50"
-                                        >
-                                            {isGeneratingEmail ? <RefreshCw className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                                            {generatedEmail ? 'Regenerate Email' : 'Generate Personalized Email'}
-                                        </button>
-
-                                        {generatedEmail && (
-                                            <div className="space-y-4">
-                                                <div className="p-6 bg-stone-900 rounded-xl font-mono text-sm group relative">
-                                                    <div className="flex justify-between items-center mb-4 border-b border-stone-800 pb-2">
-                                                        <span className="text-stone-500 uppercase text-xs tracking-widest font-sans font-bold flex items-center gap-2">
-                                                            <Terminal className="size-4" /> Edit inside Pengu
-                                                        </span>
-                                                        <span className="text-stone-600 text-[10px] uppercase font-sans font-bold">Live Editor</span>
-                                                    </div>
-                                                    <textarea
-                                                        value={generatedEmail}
-                                                        onChange={(e) => setGeneratedEmail(e.target.value)}
-                                                        className="w-full bg-transparent text-stone-300 resize-none focus:outline-none min-h-[200px]"
-                                                    />
-                                                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {!generatedEmail ? (
+                                                <div className="py-12 text-center bg-stone-50 rounded-2xl border-2 border-dashed border-stone-200">
+                                                    <Mail className="size-12 text-stone-200 mx-auto mb-4" />
+                                                    <p className="text-stone-400 font-medium mb-6">Ready to draft your perfect application?</p>
+                                                    <button
+                                                        onClick={handleGenerateEmail}
+                                                        disabled={isGeneratingEmail}
+                                                        className="px-8 py-3 bg-[#5D4037] text-white rounded-xl font-bold flex items-center gap-2 mx-auto hover:bg-[#4E342E] transition-all disabled:opacity-50"
+                                                    >
+                                                        {isGeneratingEmail ? <RefreshCw className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                                                        Generate Application Email
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="relative group">
+                                                        <textarea
+                                                            value={generatedEmail}
+                                                            onChange={(e) => setGeneratedEmail(e.target.value)}
+                                                            className="w-full h-[400px] p-6 bg-stone-50 border border-stone-200 rounded-2xl text-stone-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#5D4037]/20 resize-none font-medium"
+                                                        />
                                                         <button
                                                             onClick={() => {
-                                                                const element = document.createElement("a");
-                                                                const file = new Blob([generatedEmail], { type: 'text/plain' });
-                                                                element.href = URL.createObjectURL(file);
-                                                                element.download = "application-email.txt";
-                                                                document.body.appendChild(element);
-                                                                element.click();
-                                                                toast.success("Downloading email...");
+                                                                navigator.clipboard.writeText(generatedEmail);
+                                                                toast.success("Copied to clipboard!");
                                                             }}
-                                                            className="p-1.5 bg-stone-800 text-stone-400 rounded hover:text-white"
-                                                            title="Download as .txt"
+                                                            className="absolute top-4 right-4 p-2 bg-white border border-stone-200 rounded-lg text-stone-400 hover:text-[#5D4037] hover:border-[#5D4037]/30 transition-all shadow-sm"
+                                                            title="Copy to clipboard"
                                                         >
-                                                            <Download className="size-4" />
+                                                            <Copy className="size-4" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex justify-between items-center">
+                                                        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Tip: Personalize the placeholders before sending</p>
+                                                        <button
+                                                            onClick={handleGenerateEmail}
+                                                            disabled={isGeneratingEmail}
+                                                            className="text-[#5D4037] text-xs font-bold hover:underline flex items-center gap-1"
+                                                        >
+                                                            <RefreshCw className={`size-3 ${isGeneratingEmail ? 'animate-spin' : ''}`} /> Regenerate
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(generatedEmail);
-                                                            toast.success("Email copied to clipboard!");
-                                                        }}
-                                                        className="flex-1 py-3 bg-stone-100 text-stone-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-stone-200 transition-colors"
-                                                    >
-                                                        <Copy className="size-4" /> Copy Final Text
-                                                    </button>
-                                                    <button
-                                                        onClick={() => toast.success("Template saved to your Career Vault!")}
-                                                        className="px-4 bg-white border border-stone-200 text-stone-600 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-stone-50 transition-colors"
-                                                        title="Save as Template"
-                                                    >
-                                                        <FileJson className="size-4" />
-                                                    </button>
+                                            )}
+                                        </Card>
+                                    </div>
+                                )}
+                                {activeTab === 'interview' && (
+                                    <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+                                        {!interviewPrep ? (
+                                            <div className="bg-stone-50 rounded-2xl border-2 border-dashed border-stone-200 p-12 text-center">
+                                                <div className="size-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                                    <BrainCircuit className="size-10 text-stone-300" />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-stone-900 mb-2">Build Your Interview Strategy</h3>
+                                                <p className="text-stone-500 mb-8 max-w-md mx-auto">
+                                                    Let Pengu AI analyze the JD and your CV to generate a professional interview prep kit including technical questions, STAR scenarios, and insider tips.
+                                                </p>
+                                                <button
+                                                    onClick={handleGeneratePrep}
+                                                    disabled={isGeneratingPrep}
+                                                    className="px-8 py-4 bg-[#5D4037] text-white rounded-xl font-bold flex items-center justify-center gap-3 mx-auto hover:bg-[#4E342E] transition-all shadow-xl shadow-[#5D4037]/20 disabled:opacity-50"
+                                                >
+                                                    {isGeneratingPrep ? <RefreshCw className="size-5 animate-spin" /> : <Sparkles className="size-5" />}
+                                                    Generate Interview Preparation Kit
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-8">
+                                                {/* Role Intelligence */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <Card className="p-6 border-stone-200 bg-gradient-to-br from-[#3E2723] to-[#5D4037] text-white">
+                                                        <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 mb-4">
+                                                            <Target className="size-3" /> Core Priorities
+                                                        </h4>
+                                                        <ul className="space-y-3">
+                                                            {interviewPrep.roleAnalysis.keyPriorities.map((p: string, i: number) => (
+                                                                <li key={i} className="flex gap-3 text-sm font-medium">
+                                                                    <div className="size-5 rounded bg-white/10 flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</div>
+                                                                    {p}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </Card>
+                                                    <Card className="p-6 border-stone-200">
+                                                        <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#5D4037] mb-4">
+                                                            <ShieldAlert className="size-3 text-red-500" /> Hidden Challenges
+                                                        </h4>
+                                                        <div className="space-y-3">
+                                                            {interviewPrep.roleAnalysis.hiddenChallenges.map((c: string, i: number) => (
+                                                                <div key={i} className="p-3 bg-red-50 rounded-lg border border-red-100/50 flex gap-3 text-xs font-medium text-red-900 leading-relaxed">
+                                                                    <AlertCircle className="size-4 shrink-0" /> {c}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </Card>
+                                                    <Card className="p-6 border-stone-200 md:col-span-2 bg-stone-50/50 border-dashed">
+                                                        <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#5D4037] mb-3">
+                                                            <Sparkles className="size-3 text-amber-500" /> Culture Fit & Mindset
+                                                        </h4>
+                                                        <p className="text-sm text-stone-600 leading-relaxed italic">
+                                                            "{interviewPrep.roleAnalysis.cultureFit}"
+                                                        </p>
+                                                    </Card>
+                                                </div>
+
+                                                {/* Technical Deep Dive */}
+                                                <div className="grid grid-cols-1 gap-6">
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-stone-900 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                                                            <Terminal className="size-5 text-[#5D4037]" /> Technical Assessment Q&A
+                                                        </h3>
+                                                        <div className="space-y-4">
+                                                            {interviewPrep.technicalQuestions.map((q: any, i: number) => (
+                                                                <Card key={i} className="p-6 border-stone-200 hover:border-[#5D4037]/30 transition-all group">
+                                                                    <div className="flex gap-4">
+                                                                        <div className="size-10 rounded-xl bg-stone-100 flex items-center justify-center font-black text-stone-300 shrink-0">Q{i + 1}</div>
+                                                                        <div className="space-y-4 w-full">
+                                                                            <p className="font-bold text-[#3E2723] text-lg leading-tight">{q.question}</p>
+                                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-stone-100">
+                                                                                <div className="bg-amber-50/50 p-4 rounded-xl">
+                                                                                    <p className="text-[9px] font-black text-amber-600 uppercase mb-2">The Winning Strategy</p>
+                                                                                    <p className="text-xs text-amber-900 font-medium leading-relaxed italic">"{q.bestApproach}"</p>
+                                                                                </div>
+                                                                                <div className="bg-blue-50/50 p-4 rounded-xl">
+                                                                                    <p className="text-[9px] font-black text-blue-600 uppercase mb-2">Core Points to Include</p>
+                                                                                    <p className="text-xs text-blue-900 font-medium leading-relaxed">{q.expectedAnswer}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </Card>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Behavioral/STAR Deep Dive */}
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-stone-900 mt-8 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                                                            <UserCircle className="size-5 text-[#5D4037]" /> Behavioral Simulation
+                                                        </h3>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {interviewPrep.behavioralQuestions.map((q: any, i: number) => (
+                                                                <div key={i} className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <div className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-bold">STAR METHOD</div>
+                                                                    </div>
+                                                                    <p className="font-bold text-stone-900 leading-tight">"{q.question}"</p>
+                                                                    <div className="space-y-3">
+                                                                        <div className="flex gap-2">
+                                                                            <Lightbulb className="size-4 text-amber-500 shrink-0 mt-1" />
+                                                                            <p className="text-xs text-stone-600"><span className="font-bold text-stone-900">Approach:</span> {q.bestApproach}</p>
+                                                                        </div>
+                                                                        <div className="flex gap-2">
+                                                                            <CheckCircle2 className="size-4 text-green-500 shrink-0 mt-1" />
+                                                                            <p className="text-xs text-stone-600"><span className="font-bold text-stone-900">Ideal Answer:</span> {q.expectedAnswer}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Interactive Simulations */}
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-stone-900 mt-8 mb-4 flex items-center gap-2 uppercase tracking-wide">
+                                                            <Zap className="size-5 text-amber-500" /> Scenario-Based Test System
+                                                        </h3>
+                                                        <div className="space-y-4">
+                                                            {interviewPrep.simulationScenarios.map((s: any, i: number) => (
+                                                                <div key={i} className="p-6 bg-stone-900 rounded-3xl border border-stone-800 relative overflow-hidden group">
+                                                                    <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:scale-110 transition-all group-hover:opacity-[0.1]">
+                                                                        <Sparkles className="size-32" />
+                                                                    </div>
+                                                                    <div className="relative z-10 space-y-4">
+                                                                        <div className="flex justify-between items-center">
+                                                                            <h5 className="font-black text-white uppercase text-lg italic tracking-tight">{s.title}</h5>
+                                                                            <span className="text-[10px] font-black text-amber-400 border border-amber-400/30 px-2 py-1 rounded bg-amber-400/5 uppercase tracking-widest">Live Test</span>
+                                                                        </div>
+                                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                                                                            <div className="space-y-2">
+                                                                                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">The Context</p>
+                                                                                <p className="text-xs text-stone-400 leading-relaxed font-mono">{s.context}</p>
+                                                                            </div>
+                                                                            <div className="space-y-2">
+                                                                                <p className="text-[9px] font-black text-red-400 uppercase tracking-widest leading-none mb-1">The Curveball</p>
+                                                                                <div className="p-3 bg-red-400/10 border border-red-400/20 rounded-xl">
+                                                                                    <p className="text-xs text-red-300 italic">"Wait, ${s.challenge}"</p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="space-y-2">
+                                                                                <p className="text-[9px] font-black text-green-400 uppercase tracking-widest">Master Move</p>
+                                                                                <p className="text-xs text-stone-300 leading-relaxed">{s.winningMove}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Insider Tips Card */}
+                                                    <div className="bg-amber-400 rounded-3xl p-8 shadow-xl mt-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 p-6 opacity-20 -rotate-12 translate-x-4 -translate-y-4">
+                                                            <Sparkles className="size-48" />
+                                                        </div>
+                                                        <div className="flex-1 space-y-4 relative z-10">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-12 rounded-2xl bg-black flex items-center justify-center shadow-lg">
+                                                                    <Lightbulb className="size-6 text-amber-400" />
+                                                                </div>
+                                                                <h4 className="text-2xl font-black text-[#3E2723] uppercase tracking-tighter">Strategic Playbook</h4>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                {interviewPrep.insiderTips.map((tip: string, i: number) => (
+                                                                    <div key={i} className="flex gap-3 text-sm font-bold text-[#3E2723]/70">
+                                                                        <div className="size-2 rounded-full bg-black mt-1.5 shrink-0" /> {tip}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setResult(null)}
+                                                            className="px-8 py-4 bg-black text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 translate-y-4 md:self-end transition-all shadow-xl relative z-10"
+                                                        >
+                                                            Reset Analysis
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
-                                    </Card>
+                                    </div>
                                 )}
                             </div>
 

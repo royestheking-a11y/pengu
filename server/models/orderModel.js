@@ -38,7 +38,8 @@ const orderSchema = new mongoose.Schema({
         })
     ],
     revisionsResolved: { type: Boolean, default: false },
-    payoutProcessed: { type: Boolean, default: false } // Idempotency guard — payout runs exactly once
+    payoutProcessed: { type: Boolean, default: false }, // Idempotency guard — payout runs exactly once
+    isVirtualPayment: { type: Boolean, default: false }
 }, {
     timestamps: true
 });

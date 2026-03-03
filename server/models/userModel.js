@@ -14,6 +14,20 @@ const userSchema = new mongoose.Schema({
     total_earned: { type: Number, default: 0 },
     joinedAt: { type: Date, default: Date.now },
     onboardingCompleted: { type: Boolean, default: false },
+    wallet: {
+        coins: { type: Number, default: 0 }
+    },
+    inventory: {
+        unlockedItems: [{ type: String }],
+        equippedItems: {
+            head: { type: String, default: 'beanie_brown_default' },
+            neck: { type: String, default: 'scarf_brown_default' }
+        }
+    },
+    bestScores: {
+        pengu_slide: { type: Number, default: 0 },
+        pengu_3d: { type: Number, default: 0 },
+    },
 }, {
     timestamps: true
 });

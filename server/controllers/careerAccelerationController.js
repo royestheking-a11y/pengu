@@ -1,5 +1,5 @@
 import { matchCareerToJob, upgradeBulletPoints, generateApplicationEmail } from '../utils/careerScanner.js';
-import { groqAnalyzeMatch, groqOptimizeCV, groqGenerateEmail } from '../utils/geminiCareer.js';
+import { groqAnalyzeMatch, groqOptimizeCV, groqGenerateEmail, groqPrepareInterview } from '../utils/geminiCareer.js';
 
 // ─── Analyze Match ────────────────────────────────────────────────────────────
 export const analyzeMatch = async (req, res) => {
@@ -79,5 +79,32 @@ export const generateEmail = async (req, res) => {
     } catch (error) {
         console.error("Email Generation Error:", error);
         res.status(500).json({ message: "Internal Server Error during email generation" });
+    }
+};
+
+// ─── Prepare Interview ────────────────────────────────────────────────────────
+export const prepareInterview = async (req, res) => {
+    try {
+        const { cvText, jdText } = req.body;
+        if (!cvText || !jdText) {
+            return res.status(400).json({ message: "CV text and Job Description are required" });
+        }
+
+        let interviewKit;
+        let source = 'groq';
+
+        try {
+            console.log('[Career AI] Attempting Groq interview prep generation...');
+            interviewKit = await groqPrepareInterview(cvText, jdText);
+            console.log('[Career AI] ✅ Groq interview prep succeeded');
+        } catch (groqError) {
+            console.error('[Career AI] ❌ Groq interview prep failed:', groqError.message);
+            return res.status(500).json({ message: "Failed to generate interview preparation kit via AI" });
+        }
+
+        res.json({ ...interviewKit, _source: source });
+    } catch (error) {
+        console.error("Interview Prep Error:", error);
+        res.status(500).json({ message: "Internal Server Error during interview preparation" });
     }
 };

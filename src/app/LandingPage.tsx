@@ -14,7 +14,10 @@ import {
   Users,
   BookOpen,
   Sparkles,
-  Zap
+  Zap,
+  Globe,
+  Target,
+  FileCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -157,6 +160,71 @@ export default function LandingPage() {
                 </div>
               </Link>
             </motion.div>
+          </div>
+        </div>
+
+        {/* Scholarship Program Section */}
+        <div className="bg-white pt-24 pb-20 border-b border-stone-100 relative overflow-hidden">
+          {/* Subtle Background Elements */}
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-amber-50 to-transparent opacity-50 blur-3xl rounded-full translate-x-1/2"></div>
+
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-16">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold tracking-wider text-xs uppercase mb-6 border border-amber-200 shadow-sm">
+                <Sparkles className="size-3.5" /> New Feature
+              </span>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-[#3E2723] mb-6 leading-tight">
+                The Pengu <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">Scholarship Program</span>
+              </h2>
+              <p className="text-stone-500 text-lg md:text-xl leading-relaxed">
+                Stop hunting for scholarships and struggling with confusing portals. We find the best global opportunities and our verified experts apply for you.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <div className="bg-stone-50 rounded-2xl p-8 border border-stone-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-stone-200 flex items-center justify-center mb-6 group-hover:bg-[#5D4037] group-hover:text-white transition-colors">
+                  <Globe className="size-7 text-[#5D4037] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Discovery Board</h3>
+                <p className="text-stone-500 leading-relaxed">
+                  Browse a curated feed of fully-funded and partial scholarships across the UK, USA, Canada, and Europe, updated daily.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-stone-50 rounded-2xl p-8 border border-stone-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-stone-200 flex items-center justify-center mb-6 group-hover:bg-[#5D4037] group-hover:text-white transition-colors">
+                  <Target className="size-7 text-[#5D4037] group-hover:text-white transition-colors" />
+                </div>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">Smart Match Algorithm</h3>
+                <p className="text-stone-500 leading-relaxed">
+                  Enter your CGPA and IELTS score once. Our engine instantly filters out incompatible scholarships, showing only your high-probability matches.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-gradient-to-br from-[#5D4037] to-[#3E2723] rounded-2xl p-8 border border-[#3E2723] shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-10 transform group-hover:scale-110 transition-transform duration-500">
+                  <GraduationCap className="size-32" />
+                </div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-6">
+                    <FileCheck className="size-7 text-amber-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">We Apply For You</h3>
+                  <p className="text-stone-300 leading-relaxed mb-8">
+                    Don't risk rejection due to poor SOPs. Hire a verified Pengu Expert to write your essays and manage the portal submission securely.
+                  </p>
+                  <Link to="/scholarships">
+                    <Button className="w-full bg-amber-500 hover:bg-amber-400 text-white border-none font-bold shadow-md hover:shadow-lg transition-all">
+                      Explore Scholarships <ArrowRight className="ml-2 size-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

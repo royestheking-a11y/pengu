@@ -4,6 +4,7 @@ import { DashboardLayout } from './components/Layout';
 import ChatInterface from './components/ChatInterface';
 import { Card } from './components/ui/card';
 import { Button } from './components/ui/button';
+import { Skeleton } from './components/ui/skeleton';
 import {
   MessageSquare,
   Search,
@@ -65,6 +66,15 @@ export default function Messages() {
   const { currentUser, messages: allMessages, orders, experts, users } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState<'active' | 'archived'>('active');
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    // Simulate brief loading for nicer UX when opening Messages
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Generate conversations from orders and messages
   const conversations: Conversation[] = orders.flatMap(order => {
@@ -236,7 +246,19 @@ export default function Messages() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {filteredConversations.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-4 p-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex gap-3">
+                    <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredConversations.length === 0 ? (
               <EmptyState
                 icon={Inbox}
                 title="No conversations yet"
@@ -294,7 +316,22 @@ export default function Messages() {
 
         {/* Chat Area */}
         <Card className="flex-1 flex flex-col overflow-hidden border-stone-200">
-          {selectedConversation ? (
+          {isLoading ? (
+            <div className="flex-1 p-6 space-y-6 flex flex-col">
+              <div className="flex justify-start">
+                <div className="flex gap-3 max-w-[85%]">
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                  <Skeleton className="h-20 w-64 rounded-2xl rounded-bl-sm" />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="flex gap-3 max-w-[85%] flex-row-reverse">
+                  <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+                  <Skeleton className="h-16 w-80 rounded-2xl rounded-br-sm bg-[#5D4037]/20" />
+                </div>
+              </div>
+            </div>
+          ) : selectedConversation ? (
             <div className="flex-1 flex flex-col h-full">
               {/* Interface */}
               <div className="flex-1 overflow-hidden relative">

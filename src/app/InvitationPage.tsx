@@ -11,10 +11,18 @@ import {
     Briefcase,
     Clock,
     DollarSign,
-    Check
+    Check,
+    Globe,
+    Gamepad2,
+    Brain,
+    HeartPulse,
+    Rocket,
+    Trophy,
+    Star
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { PenguLogoDark } from './components/PenguLogoDark';
+import SEO from './components/SEO';
 
 export default function InvitationPage() {
     const { type } = useParams<{ type: string }>();
@@ -26,35 +34,43 @@ export default function InvitationPage() {
         motivation: "Turn your academic mastery into a rewarding career. Flexible hours, global impact, and premium payouts.",
         cta: "Join as Expert",
         features: [
-            { icon: Briefcase, title: "Flexible Work", desc: "Work from anywhere, anytime. You control your schedule." },
-            { icon: DollarSign, title: "Premium Payouts", desc: "Get paid what you're worth with our transparent commission system." },
-            { icon: Target, title: "Focused Tasks", desc: "Solve problems that match your specialty and passion." },
-            { icon: Zap, title: "Instant Growth", desc: "Build your reputation in the world's fastest-growing academic network." }
+            { icon: DollarSign, title: "Premium Payouts", desc: "Get paid what you're worth with our transparent, high-yield commission system." },
+            { icon: Globe, title: "Global Impact", desc: "Guide ambitious students worldwide through scholarships, academics, and careers." },
+            { icon: Briefcase, title: "Flexible Autonomy", desc: "Work from anywhere, anytime. You control your schedule and task load." },
+            { icon: Rocket, title: "Career Mentorship", desc: "Shape the future workforce by providing specialized resume reviews and interview prep." },
+            { icon: Brain, title: "AI-Assisted Workflow", desc: "Leverage our intelligent platform tools to streamline your research and grading." },
+            { icon: Trophy, title: "Exclusive Community", desc: "Build your reputation and network within an elite, gamified expert ecosystem." }
         ],
         benefits: [
             "Weekly verified payouts",
             "Direct expert-student chat",
             "AI-assisted research tools",
-            "Global professional network"
+            "Global professional network",
+            "Career acceleration mentoring",
+            "Gamified expert rewards"
         ]
     };
 
     const studentContent = {
         title: "Master Your Academic Journey",
-        subtitle: "Stop struggling alone. Join a community where top experts pave your way to success.",
+        subtitle: "Stop struggling alone. Join a premium ecosystem where AI and top experts pave your way to success.",
         motivation: "Customized support, real-time guidance, and tools designed for the modern student.",
         cta: "Start Your Journey",
         features: [
-            { icon: GraduationCap, title: "Top 1% Experts", desc: "Access the brightest minds across every academic discipline." },
-            { icon: ShieldCheck, title: "Secure Success", desc: "Verified quality and academic integrity in every interaction." },
-            { icon: Clock, title: "24/7 Support", desc: "Get help when you need it most, even for tight deadlines." },
-            { icon: Sparkles, title: "Syllabus Sync", desc: "Exclusive tools to keep your studies perfectly on track." }
+            { icon: Globe, title: "Global Scholarships", desc: "AI-powered Discovery Board to find and apply for high-probability global scholarships." },
+            { icon: Brain, title: "Universal Problem Solver", desc: "Instant, intelligent study tools and automated flashcards to conquer any subject." },
+            { icon: Rocket, title: "Career Acceleration", desc: "Access the Career Vault for resume building, interview prep, and hidden job discovery." },
+            { icon: Gamepad2, title: "Pengu Arcade", desc: "Recharge with skill-based gaming competitions, leaderboards, and real rewards." },
+            { icon: Star, title: "Expert Mentorship", desc: "1-on-1 guidance from top 1% experts for assignments, research, and presentations." },
+            { icon: HeartPulse, title: "Mental Wellness", desc: "Track and manage your academic stress with our built-in Mood Swing tracker." }
         ],
         benefits: [
-            "100% Confidentiality",
+            "Smart Scholarship Matching",
+            "Universal AI Problem Solver",
+            "Skill-based Gaming Rewards",
+            "Expert-vetted solutions",
             "Pay-per-milestone security",
-            "Fast turnaround times",
-            "Expert-vetted solutions"
+            "100% Confidentiality"
         ]
     };
 
@@ -85,6 +101,12 @@ export default function InvitationPage() {
 
     return (
         <div className="min-h-screen bg-stone-50 selection:bg-[#5D4037] selection:text-white overflow-hidden font-sans">
+            <SEO
+                title={isExpert ? "Join as an Expert | Pengu VIP" : "Premium Academic OS | Pengu VIP"}
+                description={content.subtitle}
+                url={`https://pengu.work.gd/join/${type}`}
+                keywords={isExpert ? "become an expert, academic tutoring jobs, assignment help gigs, expert network" : "academic tools, study help, scholarship discovery, expert mentorship"}
+            />
             {/* Dynamic Mesh Gradient Background */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#5D4037]/5 rounded-full blur-[120px] animate-pulse" />
@@ -116,7 +138,7 @@ export default function InvitationPage() {
                     className="grid lg:grid-cols-2 gap-20 items-center"
                 >
                     {/* Left Side: Impactful Lead */}
-                    <div className="space-y-10">
+                    <div className="space-y-10 lg:sticky lg:top-32 self-start">
                         <motion.div variants={itemVariants}>
                             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-stone-200 shadow-sm text-[#5D4037] text-xs font-black uppercase tracking-widest mb-8">
                                 <Sparkles className="size-3" /> Premium Invitation

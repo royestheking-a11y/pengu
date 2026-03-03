@@ -1,17 +1,10 @@
-import Groq from 'groq-sdk';
+import groqManager from './groqClient.js';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL = 'llama-3.1-8b-instant';
 
 // Helper: call Groq and get text response
 const ask = async (prompt, maxTokens = 2000) => {
-  const r = await groq.chat.completions.create({
-    model: MODEL,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: maxTokens,
-    temperature: 0.4
-  });
-  return r.choices[0].message.content.trim();
+  return await groqManager.ask(prompt, { model: MODEL, maxTokens, temperature: 0.4 });
 };
 
 // Helper: parse JSON from Groq (strips markdown fences + fixes literal control chars in strings)
@@ -46,8 +39,12 @@ const parseJSON = (text) => {
 
 // ─── CV Analysis via Groq ────────────────────────────────────────────────────
 export const groqAnalyzeMatch = async (cvText, jdText) => {
-  const prompt = `You are an expert ATS career coach. Analyze the following CV against the Job Description.
-Return ONLY valid JSON. No markdown, no explanation.
+  const prompt = `You are an elite executive recruiter and personal branding expert. Analyze the following CV against the Job Description specifically for high-stakes roles.
+  
+  Focus on:
+  1. EVIDENCE OF IMPACT: Does the CV show *what* they did or just *tasks*?
+  2. ROLE SIGNALS: Does the CV use the "vocabulary of the future" for this specific industry?
+  3. ATS DOMINANCE: Identify keywords that are technically present but contextually weak.
 
 CV:
 ${cvText.slice(0, 3000)}
@@ -55,7 +52,7 @@ ${cvText.slice(0, 3000)}
 Job Description:
 ${jdText.slice(0, 2000)}
 
-Return this exact JSON:
+Return ONLY valid JSON in this exact structure:
 {
   "overallScore": <number 0-100>,
   "breakdown": {
@@ -67,14 +64,14 @@ Return this exact JSON:
   },
   "highlights": {
     "missing": [<up to 6 missing keywords as strings>],
-    "weak": [<passive phrases found in the CV as strings>],
-    "overused": [<overused phrases as strings>],
-    "lowImpact": [<low-impact phrases as strings>],
-    "atsIssues": [<ATS compliance issues as strings>]
+    "weak": [<passive/low-authority phrases as strings>],
+    "overused": [<clichés liked "team player" found in the CV>],
+    "lowImpact": [<sentences that lack quantifiable results>],
+    "atsIssues": [<Technical ATS parsing risks>]
   },
   "shortlistChance": <number 0-100>,
-  "riskAreas": [<up to 3 specific risk areas as strings>],
-  "suggestions": [<4 specific actionable suggestions as strings>]
+  "riskAreas": [<3 specific high-level risks like "Domain Gap" or "Seniority Mismatch">],
+  "suggestions": [<4 ELITE strategies to immediately increase interview odds>]
 }`;
 
   const text = await ask(prompt, 1500);
@@ -83,22 +80,22 @@ Return this exact JSON:
 
 // ─── CV Optimization via Groq ─────────────────────────────────────────────────
 export const groqOptimizeCV = async (cvText) => {
-  const prompt = `You are an expert career coach. Rewrite the CV text below.
+  const prompt = `You are an elite executive resume writer. Rewrite the CV text below using the AMR (Action-Metric-Result) framework.
 
 CRITICAL RULES:
-- Replace passive/weak phrases ONLY: "Worked on", "Helped with", "Responsible for", "Assisted in", "Familiar with", "Duties included"
-- Use strong action verbs: Spearheaded, Engineered, Delivered, Grew, Reduced, Optimized, Designed
-- Add realistic metrics where appropriate (%, time saved, team size, outcomes)
-- Keep ALL original sections, dates, roles, and company names exactly as-is
-- Do NOT fabricate any information
+- TRANSFORMATION: Move from "Responsible for X" to "Spearheaded X, resulting in Y% growth/improvement."
+- VOCABULARY: Use high-authority verbs (Orchestrated, Engineered, Pioneered, Leveraged).
+- QUANTIFICATION: Add realistic, industry-standard metrics (%, $, Time, Team Size) even if implied.
+- PRESERVATION: Keep original contact info, dates, and company names exact.
+- NO FLUFF: Remove generic adjectives (hardworking, passionate).
 
 IMPORTANT OUTPUT FORMAT:
-Return ONLY this JSON. The "optimized" value MUST be a single plain text string (use \\n for line breaks). Do NOT nest objects inside "optimized".
+Return ONLY this JSON. The "optimized" value MUST be a single plain text string (use \\n for line breaks).
 
 {
-  "optimized": "<the full rewritten CV as plain text with \\n for line breaks>",
+  "optimized": "<the full elite-level CV as plain text>",
   "improvements": [
-    { "from": "<original weak phrase>", "to": "<improved version>" }
+    { "from": "<original weak bullet>", "to": "<elite AMR-based bullet>" }
   ]
 }
 
@@ -131,10 +128,15 @@ export const groqGenerateEmail = async (cvText, jdText, tone = 'Confident', leng
     Startup: 'casual, energetic, builder mindset'
   };
 
-  const prompt = `Write a compelling job application email.
+  const prompt = `Write a high-conversion, elite job application email designed to beat 1000+ competitors.
 
 Tone: ${toneGuide[tone] || toneGuide.Confident}
 Length: ${lengthGuide[length] || lengthGuide.Medium}
+
+STRATEGY:
+- THE HOOK: Start with a powerful "Pain Point" or "Opportunity" statement based on the JD.
+- THE VALUE: Connect 2-3 specific achievements from the CV directly to the job's biggest challenge.
+- THE ASYMMETRY: Mention something unique from the CV that makes the candidate a "Category of One".
 
 CV (summary):
 ${cvText.slice(0, 2000)}
@@ -142,15 +144,7 @@ ${cvText.slice(0, 2000)}
 Job Description:
 ${jdText.slice(0, 1500)}
 
-Include:
-- Subject line starting with "Subject: "
-- Personalised greeting
-- Strong opening hook connecting CV to the role
-- Specific skills/achievements from the CV that match the JD
-- Confident call-to-action
-- Appropriate sign-off
-
-Return ONLY the email text. No JSON. No markdown.`;
+Return ONLY the email text starting with "Subject: ". NO JSON, NO MARKDOWN.`;
 
   return await ask(prompt, 800);
 };
@@ -194,4 +188,56 @@ export const groqReviewCV = async (cvText) => {
   return result;
 };
 
+// ─── Interview Preparation via Groq ──────────────────────────────────────────
+export const groqPrepareInterview = async (cvText, jdText) => {
+  const prompt = `You are an elite executive interviewer and career psychologist. Your goal is to prepare a candidate for a high-stakes, competitive interview.
 
+OBJECTIVE: CRITICAL STRESS-TEST & STRATEGY.
+
+CV Content:
+${cvText.slice(0, 3000)}
+
+Job Description:
+${jdText.slice(0, 2000)}
+
+Return ONLY a valid JSON object in this exact structure:
+{
+  "roleAnalysis": {
+    "keyPriorities": ["The unstated business objective (the real 'why' for this hire)"],
+    "hiddenChallenges": ["The structural or political problems typical for this role type"],
+    "cultureFit": "Psychological profile of the ideal candidate for this specific company"
+  },
+  "technicalQuestions": [
+    {
+      "question": "An aggressive, situational technical question testing depth and trade-offs",
+      "bestApproach": "The 'Master-Level' strategy to frame the answer",
+      "expectedAnswer": "Technical precision points that prove 1% seniority"
+    } // Provide EXACTLY 5 high-stakes questions
+  ],
+  "behavioralQuestions": [
+    {
+      "question": "A psychological scenario testing emotional intelligence and leadership",
+      "bestApproach": "STAR method refined with executive presence",
+      "expectedAnswer": "A narrative that turns a challenge into a massive win"
+    } // Provide 3 questions
+  ],
+  "simulationScenarios": [
+    {
+      "title": "The 'Curveball' Simulation",
+      "context": "A high-pressure business or technical crisis matching the role",
+      "challenge": "An 'unwinnable' scenario or direct confrontation from an interviewer",
+      "winningMove": "The asymmetrical move to regain authority and solve the problem"
+    } // Provide 2 scenarios
+  ],
+  "insiderTips": ["3 'Insider-Only' tactics to instantly build rapport and authority"]
+}
+
+Rules:
+- Generate EXACTLY 5 Technical, 3 Behavioral, and 2 Simulation cases.
+- NO generic questions. Every question must be a specialized test of this specific CV vs this specific JD.
+- Use high-authority terminology.
+- Return ONLY JSON.`;
+
+  const text = await ask(prompt, 3000);
+  return parseJSON(text);
+};

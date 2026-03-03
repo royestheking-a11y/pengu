@@ -27,6 +27,9 @@ const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176",
+    "http://localhost:5177",
     "https://pengu-six.vercel.app",
     "https://pengu.work.gd",
     process.env.FRONTEND_URL
@@ -57,6 +60,11 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Initialize Cron Jobs
+import setupCronJobs, { runNightShift } from './cron/scholarshipScraper.js';
+setupCronJobs();
+
+
 // Socket.io Setup
 import { initSocket } from './socket.js';
 const io = initSocket(httpServer);
@@ -70,6 +78,17 @@ if (process.env.NODE_ENV === 'production') {
 // Routes Placeholder
 app.get('/', (req, res) => {
     res.send('Pengu Assistant API is running...');
+});
+
+// Admin manual trigger for scraper (testing only)
+app.post('/api/admin/trigger-scraper', async (req, res) => {
+    try {
+        // Run without awaiting so we don't block the request timeout
+        runNightShift();
+        res.status(200).json({ message: 'Night Shift scraper triggered successfully. Check server logs.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Import Routes
@@ -99,7 +118,9 @@ import studyToolsRoutes from './routes/studyToolsRoutes.js';
 import universalTicketRoutes from './routes/universalTicketRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
 import resumeBuilderRoutes from './routes/resumeBuilderRoutes.js';
-
+import gameRoutes from './routes/gameRoutes.js';
+import companionRoutes from './routes/companionRoutes.js';
+import scholarshipRoutes from './routes/scholarshipRoutes.js';
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/requests', requestRoutes);
@@ -125,6 +146,9 @@ app.use('/api/study-tools', studyToolsRoutes);
 app.use('/api/universal-tickets', universalTicketRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/resume-builder', resumeBuilderRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/companion', companionRoutes);
+app.use('/api/scholarships', scholarshipRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

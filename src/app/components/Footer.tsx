@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Facebook,
   Instagram,
+  Linkedin,
   Mail,
   MapPin,
   Phone,
@@ -50,17 +51,27 @@ export function Footer() {
             >
               <AtSign className="size-5" />
             </a>
+            <a
+              href="https://www.linkedin.com/company/penguofficial/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="size-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 hover:text-blue-500 transition-all border border-white/10"
+              title="LinkedIn"
+            >
+              <Linkedin className="size-5" />
+            </a>
           </div>
         </div>
 
-        {/* Services */}
+        {/* Services & Features */}
         <div>
-          <h3 className="font-bold text-lg mb-6">Services</h3>
+          <h3 className="font-bold text-lg mb-6">Discovery & Tools</h3>
           <ul className="space-y-3 text-stone-300 text-sm">
-            <li><Link to="/services" className="hover:text-white transition-colors">Assignment Support</Link></li>
-            <li><Link to="/services" className="hover:text-white transition-colors">Research & Editing</Link></li>
-            <li><Link to="/services" className="hover:text-white transition-colors">Presentation Design</Link></li>
-            <li><Link to="/services" className="hover:text-white transition-colors">Career Vault</Link></li>
+            <li><Link to="/scholarships" className="hover:text-amber-400 transition-colors">Global Scholarships</Link></li>
+            <li><Link to="/problem-solver" className="hover:text-amber-400 transition-colors">AI Problem Solver</Link></li>
+            <li><Link to="/services" className="hover:text-amber-400 transition-colors">Expert Support</Link></li>
+            <li><Link to="/arcade" className="hover:text-amber-400 transition-colors">Pengu Arcade</Link></li>
+            <li><Link to="/games" className="hover:text-amber-400 transition-colors">Game Zone</Link></li>
           </ul>
         </div>
 
@@ -68,20 +79,21 @@ export function Footer() {
         <div>
           <h3 className="font-bold text-lg mb-6">Company</h3>
           <ul className="space-y-3 text-stone-300 text-sm">
-            <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-            <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it works</Link></li>
-            <li><Link to="/reviews" className="hover:text-white transition-colors">Reviews</Link></li>
-            <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+            <li><Link to="/about" className="hover:text-amber-400 transition-colors">About Us</Link></li>
+            <li><Link to="/how-it-works" className="hover:text-amber-400 transition-colors">How it works</Link></li>
+            <li><Link to="/reviews" className="hover:text-amber-400 transition-colors">Reviews</Link></li>
+            <li><Link to="/contact" className="hover:text-amber-400 transition-colors">Contact</Link></li>
+            <li><Link to="/join/expert" className="hover:text-amber-400 transition-colors">Join as Expert</Link></li>
           </ul>
         </div>
 
         {/* Legal */}
         <div>
-          <h3 className="font-bold text-lg mb-6">Legal</h3>
+          <h3 className="font-bold text-lg mb-6">Legal & Policy</h3>
           <ul className="space-y-3 text-stone-300 text-sm">
-            <li><Link to="/legal/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-            <li><Link to="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-            <li><Link to="/legal/honor-code" className="hover:text-white transition-colors">Honor Code</Link></li>
+            <li><Link to="/legal/privacy" className="hover:text-amber-400 transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/legal/terms" className="hover:text-amber-400 transition-colors">Terms of Service</Link></li>
+            <li><Link to="/legal/honor-code" className="hover:text-amber-400 transition-colors">Honor Code</Link></li>
           </ul>
         </div>
 
@@ -90,16 +102,16 @@ export function Footer() {
           <h3 className="font-bold text-lg mb-6">Contact Us</h3>
           <ul className="space-y-4 text-stone-300 text-sm">
             <li className="flex gap-3">
-              <MapPin className="size-5 text-[#D7CCC8] shrink-0" />
+              <MapPin className="size-5 text-amber-400 shrink-0" />
               <span>House 34, Road 16, Nikunja 2, Dhaka-1209</span>
             </li>
             <li className="flex items-center gap-3">
-              <Phone className="size-5 text-[#D7CCC8] shrink-0" />
-              <a href="tel:+8801604710170" className="hover:text-white transition-colors">+8801604710170</a>
+              <Phone className="size-5 text-amber-400 shrink-0" />
+              <a href="tel:+8801604710170" className="hover:text-amber-400 transition-colors">+8801604710170</a>
             </li>
             <li className="flex items-center gap-3">
-              <Mail className="size-5 text-[#D7CCC8] shrink-0" />
-              <a href="mailto:rpenguprojects@gmail.com" className="hover:text-white transition-colors">penguprojects@gmail.com</a>
+              <Mail className="size-5 text-amber-400 shrink-0" />
+              <a href="mailto:rpenguprojects@gmail.com" className="hover:text-amber-400 transition-colors">penguprojects@gmail.com</a>
             </li>
           </ul>
         </div>

@@ -1,16 +1,9 @@
-import Groq from 'groq-sdk';
+import groqManager from './groqClient.js';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL = 'llama-3.3-70b-versatile'; // Smarter model for richer academic output
 
 const ask = async (prompt, maxTokens = 2000) => {
-    const r = await groq.chat.completions.create({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: maxTokens,
-        temperature: 0.5
-    });
-    return r.choices[0].message.content.trim();
+    return await groqManager.ask(prompt, { model: MODEL, maxTokens, temperature: 0.5 });
 };
 
 const parseJSON = (text) => {

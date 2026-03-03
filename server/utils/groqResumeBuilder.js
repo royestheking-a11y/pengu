@@ -1,6 +1,4 @@
-import Groq from 'groq-sdk';
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+import groqManager from './groqClient.js';
 
 export const parseResumeText = async (rawText) => {
   const prompt = `You are a professional Executive Resume Writer and Parser.
@@ -49,7 +47,7 @@ If any information is missing from the text (e.g., no references, no phone, no e
 User Text:
 ${rawText}`;
 
-  const r = await groq.chat.completions.create({
+  const r = await groqManager.createChatCompletion({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.1, // Keep it deterministic for JSON extraction

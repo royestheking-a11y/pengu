@@ -75,9 +75,14 @@ export default function StudentDashboard() {
             <p className="text-stone-500">Here's what's happening with your academic career.</p>
           </div>
           <div className="flex gap-3">
-            <Link to="/student/messages">
-              <Button variant="outline" size="lg">
-                Support
+            <Link to="/student/mood-swing">
+              <Button size="lg" className="bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-white hover:opacity-90 shadow-lg hover:shadow-xl transition-all group border-none">
+                <div className="flex items-center gap-2 relative z-10 w-full h-full">
+                  <div className="bg-white p-1 rounded-full flex items-center justify-center shrink-0">
+                    <img src="/pengu.png" alt="Pengu" className="w-4 h-4 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  Mood Swing
+                </div>
               </Button>
             </Link>
             <Link to="/student/new-request">

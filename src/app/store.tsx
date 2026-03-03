@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { socketService } from './lib/socket';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 // --- Types ---
 export type Role = 'student' | 'expert' | 'admin';
@@ -28,7 +29,14 @@ export interface User {
   bio?: string;
   phone?: string;
   balance?: number;
+  coins?: number;
   total_earned?: number;
+  wallet?: {
+    coins: number;
+  };
+  bestScores?: {
+    [gameId: string]: number;
+  };
 }
 
 export interface Request {
@@ -165,6 +173,23 @@ export interface ExpertProfile {
   skills?: string[];
 }
 
+export interface ScholarshipApplication {
+  id: string;
+  studentId: string | { id: string; name: string; email: string; avatar?: string };
+  scholarshipId: string | { id: string; title: string; country: string; deadline: string };
+  expertId?: string | { id: string; name: string; avatar?: string };
+  status: 'REQUEST_SENT' | 'QUOTE_PROVIDED' | 'PENDING_VERIFICATION' | 'QUOTE_ACCEPTED' | 'EXPERT_ASSIGNED' | 'FINAL_REVIEW' | 'COMPLETED';
+  customQuoteAmount?: number;
+  cgpa: number;
+  ielts?: number;
+  major: string;
+  documentVault: { name: string; url: string; type: string }[];
+  finalReceipts: { name: string; url: string; type: string }[];
+  notes?: string;
+  updatedAt: string;
+  createdAt: string;
+}
+
 export interface Review {
   id: string;
   orderId: string;
@@ -263,6 +288,7 @@ interface StoreData {
   orders: Order[];
   notifications: Notification[];
   experts: ExpertProfile[];
+  scholarshipApplications: ScholarshipApplication[];
   login: (email: string, password?: string) => Promise<boolean>;
   loginWithGoogle: (idToken?: string, role?: string, accessToken?: string) => Promise<boolean>;
   logout: () => void;
@@ -291,6 +317,13 @@ interface StoreData {
   verifyOrderPayment: (orderId: string) => Promise<void>;
   rejectOrderPayment: (orderId: string) => Promise<void>;
   updateRequest: (requestId: string, updates: Partial<Request>) => void;
+  provideScholarshipQuote: (applicationId: string, amount: number) => void;
+  acceptScholarshipQuote: (applicationId: string, amount: number, paymentDetails: any) => Promise<boolean>;
+  verifyScholarshipPayment: (applicationId: string) => Promise<void>;
+  assignScholarshipExpert: (applicationId: string, expertId: string) => void;
+  completeScholarshipApplication: (applicationId: string) => void;
+  uploadScholarshipReceipts: (applicationId: string, receipts: { name: string; url: string; type: string }[]) => Promise<void>;
+  autoGenerateScholarship: () => Promise<boolean>;
   submitMilestone: (orderId: string, milestoneId: string, files: (string | FileAttachment)[]) => void;
   reviewDeliverable: (orderId: string, milestoneId: string, approved: boolean) => void;
 
@@ -335,12 +368,14 @@ interface StoreData {
   submitReview: (review: Omit<Review, 'id' | 'createdAt' | 'status'>) => void;
   updateReviewStatus: (reviewId: string, status: Review['status']) => void;
 
+  refreshUser: () => Promise<void>;
   isInitialized: boolean;
 }
 
 const StoreContext = createContext<StoreData | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
       const item = localStorage.getItem('pengu_final_v4_user');
@@ -363,6 +398,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [scholarshipApplications, setScholarshipApplications] = useState<ScholarshipApplication[]>([]);
 
   // Pending backend items (Quotes logic is complex, keeping client-side state for now but persisting to Order on accept)
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -402,7 +438,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           // Re-fetch profile to sync latest data (credits, status, etc.)
           promises.push(api.get('/auth/profile').then(res => {
             const updatedUser = { ...res.data, id: res.data._id || res.data.id, token: currentUser.token };
-            setCurrentUser(updatedUser);
+            // Only update if something meaningful changed to avoid infinite rerender loop
+            const hasChanged = JSON.stringify(updatedUser) !== JSON.stringify(currentUser);
+            if (hasChanged) {
+              setCurrentUser(updatedUser);
+            }
           }));
 
           // Fetch settings for all authenticated users to sync commission rates
@@ -425,6 +465,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             promises.push(api.get('/expert-applications').then(res => setExpertApplications(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/skills').then(res => setSkills(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/syllabus').then(res => setSyllabusEvents(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
+            promises.push(api.get('/scholarships/applications/all').then(res => setScholarshipApplications(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/courses').then(res => {
               setCourseObjects(res.data.map((d: any) => ({ ...d, id: d._id || d.id })));
               setCourses(res.data.map((c: any) => c.name));
@@ -447,6 +488,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             promises.push(api.get('/skills/my').then(res => setSkills(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/reviews/my').then(res => setReviews(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/syllabus').then(res => setSyllabusEvents(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
+
+            const scholarUrl = currentUser.role === 'expert' ? '/scholarships/expert/assigned' : '/scholarships/my-applications';
+            promises.push(api.get(scholarUrl).then(res => setScholarshipApplications(res.data.map((d: any) => ({ ...d, id: d._id || d.id })))));
             promises.push(api.get('/courses').then(res => {
               setCourseObjects(res.data.map((d: any) => ({ ...d, id: d._id || d.id })));
               setCourses(res.data.map((c: any) => c.name));
@@ -500,8 +544,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    localStorage.removeItem('pengu_final_v4_user');
     setCurrentUser(null);
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   const updateProfile = async (updates: any) => {
@@ -599,8 +644,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
 
       const handleTransactionUpdate = (data: any) => {
-        const txUrl = currentUser.role === 'admin' ? '/transactions' : '/transactions'; // All same for now
+        const txUrl = currentUser.role === 'admin' ? '/transactions' : '/transactions';
         api.get(txUrl).then(res => setFinancialTransactions(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
+      };
+
+      const handleScholarshipUpdate = (data: any) => {
+        let scholarshipUrl = '/scholarships/my-applications';
+        if (currentUser.role === 'admin') scholarshipUrl = '/scholarships/applications/all';
+        if (currentUser.role === 'expert') scholarshipUrl = '/scholarships/expert/assigned';
+
+        api.get(scholarshipUrl).then(res => setScholarshipApplications(res.data.map((d: any) => ({ ...d, id: d._id || d.id }))));
+
+        if (currentUser.role === 'admin' && data.status === 'REQUEST_SENT') {
+          toast.info("New scholarship application received");
+        } else if (data.status === 'QUOTE_PROVIDED' && currentUser.role === 'student') {
+          toast.success("New scholarship quote received");
+        } else if (data.status === 'EXPERT_ASSIGNED' && currentUser.role === 'expert') {
+          toast.success("New scholarship application assigned to you!");
+        }
       };
 
       if (socket) {
@@ -619,6 +680,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         socket.on('user_updated', handleUserUpdate);
         socket.on('notification_created', handleNotification);
         socket.on('transaction_created', handleTransactionUpdate);
+        socket.on('scholarship_application_created', handleScholarshipUpdate);
+        socket.on('scholarship_application_updated', handleScholarshipUpdate);
       }
 
       return () => {
@@ -638,6 +701,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           socket.off('user_updated', handleUserUpdate);
           socket.off('notification_created', handleNotification);
           socket.off('transaction_created', handleTransactionUpdate);
+          socket.off('scholarship_application_created', handleScholarshipUpdate);
+          socket.off('scholarship_application_updated', handleScholarshipUpdate);
         }
       };
     }
@@ -1066,6 +1131,72 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch (e) { toast.error("Failed update"); }
   };
 
+  const provideScholarshipQuote = async (applicationId: string, amount: number) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/quote`, { quoteAmount: amount });
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...data, id: data._id || data.id } : app));
+      toast.success("Quote provided to student");
+    } catch (e) { toast.error("Failed to provide quote"); }
+  };
+
+  const acceptScholarshipQuote = async (applicationId: string, amount: number, paymentDetails: any) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/accept`, { paymentDetails });
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...app, status: data.status, paymentInfo: data.paymentInfo } : app));
+      return true;
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to submit payment proof");
+      return false;
+    }
+  };
+
+  const verifyScholarshipPayment = async (applicationId: string) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/verify-payment`);
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...app, status: data.status } : app));
+      toast.success("Scholarship payment verified successfully");
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to verify scholarship payment");
+    }
+  };
+
+  const assignScholarshipExpert = async (applicationId: string, expertId: string) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/assign`, { expertId });
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...data, id: data._id || data.id } : app));
+      toast.success("Expert assigned successfully");
+    } catch (e) { toast.error("Failed to assign expert"); }
+  };
+
+  const completeScholarshipApplication = async (applicationId: string) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/finish`);
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...data, id: data._id || data.id } : app));
+      toast.success("Application completed!");
+    } catch (e) { toast.error("Failed to complete application"); }
+  };
+
+  const uploadScholarshipReceipts = async (applicationId: string, receipts: { name: string; url: string; type: string }[]) => {
+    try {
+      const { data } = await api.put(`/scholarships/applications/${applicationId}/complete`, { finalReceipts: receipts });
+      setScholarshipApplications(prev => prev.map(app => app.id === applicationId ? { ...data, id: data._id || data.id } : app));
+      toast.success("Receipts uploaded successfully!");
+    } catch (e) { toast.error("Failed to upload receipts"); }
+  };
+
+  const autoGenerateScholarship = async () => {
+    try {
+      const { data } = await api.post('/scholarships/auto-generate');
+      // The newly generated draft is a scholarship, not an application.
+      // We do not add it to scholarshipApplications. Instead, AdminScholarships will fetch it or we can manage a local list of scholarships.
+      // Currently, AdminScholarships fetches scholarships directly component-side.
+      return true;
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Failed to generate scholarship via AI.");
+      return false;
+    }
+  };
+
   // Placeholders that need implementation if used
   const addPayoutMethod = async (expertId: string, method: any) => {
     try {
@@ -1189,24 +1320,91 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
 
+  const refreshUser = async () => {
+    if (!currentUser) return;
+    try {
+      const { data } = await api.get('/auth/profile');
+      const updatedUser = { ...data, id: data._id || data.id, token: currentUser.token };
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to refresh user", error);
+    }
+  };
 
   return (
     <StoreContext.Provider value={{
-      currentUser, users, requests, quotes, orders, notifications, experts, withdrawalRequests,
-      financialTransactions, commissionRate, setCommissionRate,
-      messages, addMessage,
-      carouselSlides, addCarouselSlide, updateCarouselSlide, deleteCarouselSlide,
-      login, loginWithGoogle, logout, addRequest, createQuote, acceptQuote, negotiateQuote, updateQuote,
-      addNotification, markNotificationRead, clearAllNotifications,
-      addUser, updateUserStatus, deleteUser, updateProfile,
-      updateExpertStatus, updateExpertProfile, toggleExpertOnline, assignExpert,
-      updateOrder, verifyOrderPayment, rejectOrderPayment, updateRequest,
-      submitMilestone, reviewDeliverable, addPayoutMethod, removePayoutMethod,
-      requestWithdrawal, requestStudentWithdrawal, approveStudentWithdrawal, rejectStudentWithdrawal,
+      currentUser,
+      users,
+      requests,
+      quotes,
+      orders,
+      notifications,
+      experts,
+      scholarshipApplications,
+      login,
+      loginWithGoogle,
+      logout,
+      updateProfile,
+      addRequest,
+      createQuote,
+      acceptQuote,
+      negotiateQuote,
+      updateQuote,
+      addNotification,
+      markNotificationRead,
+      clearAllNotifications,
+      provideScholarshipQuote,
+      acceptScholarshipQuote,
+      verifyScholarshipPayment,
+      assignScholarshipExpert,
+      completeScholarshipApplication,
+      uploadScholarshipReceipts,
+      autoGenerateScholarship,
+      addUser,
+      updateUserStatus,
+      deleteUser,
+      updateExpertStatus,
+      updateExpertProfile,
+      toggleExpertOnline,
+      assignExpert,
+      updateOrder,
+      verifyOrderPayment,
+      rejectOrderPayment,
+      updateRequest,
+      submitMilestone,
+      reviewDeliverable,
+      addPayoutMethod,
+      removePayoutMethod,
+      requestWithdrawal,
+      requestStudentWithdrawal,
+      approveStudentWithdrawal,
+      rejectStudentWithdrawal,
       updateWithdrawalStatus,
-      skills, addSkill, syllabusEvents, addSyllabusEvent, courses, addCourse, updateCourse, deleteCourse,
-      expertApplications, submitExpertApplication, reviewExpertApplication,
-      reviews, submitReview, updateReviewStatus,
+      withdrawalRequests,
+      financialTransactions,
+      commissionRate,
+      setCommissionRate,
+      messages,
+      addMessage,
+      carouselSlides,
+      addCarouselSlide,
+      updateCarouselSlide,
+      deleteCarouselSlide,
+      skills,
+      addSkill,
+      syllabusEvents,
+      addSyllabusEvent,
+      courses,
+      addCourse,
+      updateCourse,
+      deleteCourse,
+      expertApplications,
+      submitExpertApplication,
+      reviewExpertApplication,
+      reviews,
+      submitReview,
+      updateReviewStatus,
+      refreshUser,
       isInitialized
     }}>
       {children}

@@ -11,8 +11,10 @@
         "db:reset": "node reset.js"
     },
     "dependencies": {
+        "@google/genai": "^1.43.0",
         "@google/generative-ai": "^0.24.1",
         "bcryptjs": "^2.4.3",
+        "cheerio": "^1.2.0",
         "cloudinary": "^1.41.3",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
@@ -25,6 +27,7 @@
         "mongoose": "^8.2.0",
         "multer": "^1.4.5-lts.1",
         "multer-storage-cloudinary": "^4.0.0",
+        "node-cron": "^4.2.1",
         "pdf-parse": "^1.1.1",
         "socket.io": "^4.7.4"
     },

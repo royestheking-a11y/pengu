@@ -1,6 +1,5 @@
-import Groq from 'groq-sdk';
+import groqManager from './groqClient.js';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL = 'llama-3.3-70b-versatile';
 
 // ─── Chat Reply ───────────────────────────────────────────────────────────────
@@ -22,7 +21,7 @@ Guidelines:
         ...messages.map(m => ({ role: m.role, content: m.content }))
     ];
 
-    const r = await groq.chat.completions.create({
+    const r = await groqManager.createChatCompletion({
         model: MODEL,
         messages: groqMessages,
         max_tokens: 300,
@@ -59,7 +58,7 @@ Write a 3-5 sentence admin summary covering:
 
 Be direct and factual. No fluff.`;
 
-    const r = await groq.chat.completions.create({
+    const r = await groqManager.createChatCompletion({
         model: MODEL,
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 400,

@@ -107,6 +107,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
             phone: user.phone,
             balance: user.balance,
             total_earned: user.total_earned,
+            wallet: user.wallet,
+            bestScores: user.bestScores,
             onboardingCompleted: user.onboardingCompleted
         });
     } else {
@@ -357,4 +359,46 @@ const googleAuth = asyncHandler(async (req, res) => {
     });
 });
 
-export { authUser, registerUser, getUserProfile, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth };
+// @desc    Convert game coins to BDT balance (1000 Coins -> 100 BDT)
+// @route   POST /api/auth/convert-coins
+// @access  Private
+const convertCoins = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    const CONVERSION_RATE = 10; // 1000 coins / 100 BDT = 10
+    const MIN_COINS = 1000;
+
+    if (!user.wallet || user.wallet.coins < MIN_COINS) {
+        res.status(400);
+        throw new Error(`Minimum ${MIN_COINS} coins required for conversion`);
+    }
+
+    const coinsToConvert = Math.floor(user.wallet.coins / MIN_COINS) * MIN_COINS;
+    const bdtToAdd = coinsToConvert / CONVERSION_RATE;
+
+    user.wallet.coins -= coinsToConvert;
+    user.balance += bdtToAdd;
+
+    await user.save();
+
+    // Emit socket update for instant frontend reflect
+    const { getIO } = await import('../socket.js');
+    try {
+        getIO().to(user._id.toString()).emit('user_updated', user);
+    } catch (err) {
+        console.error('Socket emission failed in convertCoins:', err.message);
+    }
+
+    res.json({
+        message: `Successfully converted ${coinsToConvert} coins to ${bdtToAdd} BDT`,
+        newBalance: user.balance,
+        remainingCoins: user.wallet.coins
+    });
+});
+
+export { authUser, registerUser, getUserProfile, updateUserProfile, getUsers, deleteUser, updateUserStatus, googleAuth, convertCoins };

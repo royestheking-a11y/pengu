@@ -23,7 +23,11 @@ import {
   Rocket,
   Brain,
   Sparkles,
-  Target
+  Target,
+  BookOpen,
+  Zap,
+  Gamepad2,
+  Award
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
@@ -38,42 +42,49 @@ const MENU_ITEMS = {
     { icon: PlusCircle, label: 'New Request', path: '/student/new-request' },
     { icon: FileText, label: 'My Orders', path: '/student/orders' },
     { icon: GraduationCap, label: 'Syllabus Sync', path: '/student/syllabus-sync' },
+    { icon: Award, label: 'Scholarships', path: '/student/scholarships' },
     { icon: Briefcase, label: 'Career Vault', path: '/student/career-vault' },
     { icon: Rocket, label: 'Career Acceleration', path: '/student/career-acceleration' },
     { icon: Brain, label: 'AI Study Tools', path: '/student/study-tools' },
-    { icon: Sparkles, label: 'Pengu Arcade', path: '/student/earn' },
+    { icon: Gamepad2, label: 'Game Zone', path: '/games' },
+    { icon: Sparkles, label: 'Pengu Arcade', path: '/arcade' },
     { icon: MessageSquare, label: 'Messages', path: '/student/messages' },
+    { icon: Sparkles, label: 'Mood Swing', path: '/student/mood-swing' },
     { icon: Settings, label: 'Settings', path: '/student/settings' },
   ],
   expert: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/expert/dashboard' },
+    { icon: GraduationCap, label: 'Scholarship Assignments', path: '/expert/scholarships' },
     { icon: FileText, label: 'Active Orders', path: '/expert/orders' },
+    { icon: Rocket, label: 'Career Acceleration', path: '/expert/career-acceleration' },
     { icon: Sparkles, label: 'Partner Program', path: '/expert/earn' },
     { icon: Star, label: 'Client Feedback', path: '/expert/feedback' },
     { icon: MessageSquare, label: 'Messages', path: '/expert/messages' },
+    { icon: Sparkles, label: 'Mood Swing', path: '/expert/mood-swing' },
     { icon: CreditCard, label: 'Payouts', path: '/expert/payouts' },
     { icon: Settings, label: 'Profile & Settings', path: '/expert/settings' },
   ],
   admin: [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: Target, label: 'Partner Leads', path: '/admin/leads' },
     { icon: FileText, label: 'Quote Requests', path: '/admin/requests' },
     { icon: Briefcase, label: 'Active Operations', path: '/admin/orders' },
     { icon: Users, label: 'Students', path: '/admin/students' },
-    { icon: Star, label: 'Reviews', path: '/admin/reviews' },
-    { icon: Sparkles, label: 'Universal Solutions', path: '/admin/universal-solutions' },
-    { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
     { icon: User, label: 'Experts', path: '/admin/experts' },
     { icon: CheckCircle, label: 'Quality Control', path: '/admin/quality' },
+    { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
+    { icon: Sparkles, label: 'Universal Solutions', path: '/admin/universal-solutions' },
+    { icon: GraduationCap, label: 'Scholarship CRM', path: '/admin/scholarships' },
+    { icon: Award, label: 'Scholarship Requests', path: '/admin/scholarship-requests' },
+    { icon: Target, label: 'Partner Leads', path: '/admin/leads' },
     { icon: GalleryHorizontal, label: 'Hero Carousel', path: '/admin/carousel' },
-    { icon: Mail, label: 'Contact Inquiries', path: '/admin/contacts' },
     { icon: CreditCard, label: 'Payout Requests', path: '/admin/withdrawals' },
+    { icon: Mail, label: 'Contact Inquiries', path: '/admin/contacts' },
     { icon: Settings, label: 'System Settings', path: '/admin/settings' },
   ]
 };
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { currentUser, logout, orders, requests, isInitialized } = useStore();
+  const { currentUser, logout, orders, requests, isInitialized, scholarshipApplications } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -108,6 +119,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       if (label === 'Quote Requests') return requests.filter(r => r.status === 'SUBMITTED').length;
       if (label === 'Active Operations') return orders.filter(o => o.status === 'PAID_CONFIRMED').length;
       if (label === 'Quality Control') return orders.flatMap(o => o.milestones).filter(m => m.status === 'DELIVERED').length;
+      if (label === 'Scholarship Requests') {
+        return scholarshipApplications.filter(a => a.status === 'REQUEST_SENT').length;
+      }
     }
     if (role === 'expert') {
       // Use currentUser.id for expert badges
@@ -127,7 +141,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <PenguLogoDark className="h-8 w-auto" />
         </Link>
 
-        <nav className="flex-1 px-4 space-y-1 py-4">
+        <nav className="flex-1 px-4 space-y-1 py-4 overflow-y-auto pb-4 custom-scrollbar">
           {menu.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             const badgeCount = getBadgeCount(item.label);
@@ -359,6 +373,17 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               Services
             </Link>
             <Link
+              to="/scholarships"
+              className={clsx(
+                "text-sm transition-all",
+                location.pathname.startsWith('/scholarships')
+                  ? "text-[#3E2723] font-bold"
+                  : "text-stone-600 hover:text-[#3E2723]"
+              )}
+            >
+              Scholarships
+            </Link>
+            <Link
               to="/how-it-works"
               className={clsx(
                 "text-sm transition-all",
@@ -379,6 +404,17 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               )}
             >
               Reviews
+            </Link>
+            <Link
+              to="/games"
+              className={clsx(
+                "text-sm transition-all",
+                location.pathname.startsWith('/games')
+                  ? "text-[#3E2723] font-bold"
+                  : "text-stone-600 hover:text-[#3E2723]"
+              )}
+            >
+              Games
             </Link>
             <Link
               to="/contact"
@@ -532,8 +568,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   {[
                     { label: 'Home', path: '/' },
                     { label: 'Services', path: '/services' },
+                    { label: 'Scholarships', path: '/scholarships' },
                     { label: 'How it Works', path: '/how-it-works' },
                     { label: 'Reviews', path: '/reviews' },
+                    { label: 'Games', path: '/games' },
                     { label: 'Contact Support', path: '/contact' }
                   ].map((item) => {
                     const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));

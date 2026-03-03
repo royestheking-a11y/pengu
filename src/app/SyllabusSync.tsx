@@ -51,6 +51,7 @@ import {
 
 import { useStore, SyllabusEvent } from './store';
 import api from '../lib/api'; // Import API
+import SEO from './components/SEO';
 
 
 
@@ -219,6 +220,11 @@ export default function SyllabusSync() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Syllabus Sync - Auto-Generate Your Deadlines"
+        description="Upload your syllabus and let AI automatically extract deadlines, assignments, and exams into your dashboard calendar."
+        url="https://pengu.work.gd/student/syllabus-sync"
+      />
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -227,7 +233,7 @@ export default function SyllabusSync() {
           </div>
           <Dialog open={isManualEntryOpen} onOpenChange={setIsManualEntryOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Plus className="mr-2 size-4" /> Add Manual Entry
               </Button>
             </DialogTrigger>
@@ -366,16 +372,16 @@ export default function SyllabusSync() {
                             animate={{ opacity: 1, y: 0 }}
                             className="p-4 border border-stone-200 rounded-xl hover:shadow-md transition-shadow bg-white group"
                           >
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                               <div className="flex gap-4">
                                 <div className={`
-                                  p-3 rounded-lg flex items-center justify-center h-fit
+                                  p-3 rounded-lg flex items-center justify-center h-fit shrink-0
                                   ${event.type === 'exam' ? 'bg-red-100 text-red-700' : 'bg-[#5D4037]/10 text-[#5D4037]'}
                                 `}>
                                   {event.type === 'exam' ? <AlertCircle className="size-5" /> : <FileText className="size-5" />}
                                 </div>
                                 <div>
-                                  <h4 className="font-bold text-stone-900">{event.title}</h4>
+                                  <h4 className="font-bold text-stone-900 leading-snug">{event.title}</h4>
                                   <p className="text-sm text-stone-500">{event.course} • {event.weight} Weight</p>
                                   <div className="flex items-center gap-2 mt-2">
                                     <span className="text-xs bg-stone-100 text-stone-600 px-2 py-1 rounded">
@@ -384,7 +390,7 @@ export default function SyllabusSync() {
                                   </div>
                                 </div>
                               </div>
-                              <Button size="sm" variant="outline" onClick={() => handleCreateRequest(event)}>
+                              <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => handleCreateRequest(event)}>
                                 Get Help <ArrowRight className="ml-2 size-3" />
                               </Button>
                             </div>

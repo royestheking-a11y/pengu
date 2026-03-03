@@ -11,7 +11,10 @@ import {
   DollarSign,
   MessageSquare,
   AlertTriangle,
-  Power
+  Power,
+  Rocket,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -107,6 +110,16 @@ export default function ExpertDashboard() {
               </span>
             </button>
 
+            <Link to="/expert/mood-swing">
+              <Button className="bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-white hover:opacity-90 shadow-sm border-none h-10 px-4 group">
+                <div className="flex items-center gap-2">
+                  <div className="bg-white p-1 rounded-full flex items-center justify-center shrink-0">
+                    <img src="/pengu.png" alt="Pengu" className="w-3.5 h-3.5 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  Mood Swing
+                </div>
+              </Button>
+            </Link>
             <Link to="/expert/messages">
               <Button variant="outline" className="border-stone-200 hover:bg-stone-50 h-10 px-4 py-2">
                 <MessageSquare className="mr-2 size-4" /> Support
@@ -196,6 +209,28 @@ export default function ExpertDashboard() {
               >
                 Review Guidelines
               </Button>
+            </Card>
+
+            {/* Career Acceleration Teaser */}
+            <Card className="p-6 bg-gradient-to-br from-[#5D4037] to-[#3E2723] text-white border-none shadow-xl relative overflow-hidden group">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4 bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-md">
+                  <Rocket className="size-4 text-amber-400" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Elite Tools</span>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Career Acceleration</h3>
+                <p className="text-stone-300 text-sm mb-6 leading-relaxed">
+                  Boost your professional profile with AI-driven CV optimization and interview intelligence.
+                </p>
+                <Link to="/expert/career-acceleration">
+                  <Button className="w-full bg-amber-500 hover:bg-amber-600 text-[#3E2723] font-bold rounded-xl border-none shadow-lg active:scale-95 transition-all group/btn">
+                    Launch Suite <ArrowRight className="ml-2 size-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+              <div className="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                <Sparkles size={140} />
+              </div>
             </Card>
 
             <Card className="p-6">

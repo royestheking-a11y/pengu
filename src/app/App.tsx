@@ -15,10 +15,18 @@ import Reviews from './Reviews';
 import About from './About';
 import Contact from './Contact';
 import Legal from './Legal';
+import ArcadePartnership from './ArcadePartnership';
+import GameZone from './GameZone';
+import Pengu3DAvalanche from './Pengu3DAvalanche';
+import { Scholarships } from './Scholarships';
+import ScholarshipDetails from './ScholarshipDetails';
+import { ScholarshipApplication } from './ScholarshipApplication';
 
 import StudentDashboard from './StudentDashboard';
 import StudentOrders from './StudentOrders';
 import NewRequest from './NewRequest';
+
+// Admin Components
 import RequestDetails from './RequestDetails';
 import OrderDetails from './OrderDetails';
 import AdminDashboard from './AdminDashboard';
@@ -36,6 +44,7 @@ import StudyTools from './StudyTools';
 import ProblemSolver from './ProblemSolver';
 import AdminUniversalSolutions from './AdminUniversalSolutions';
 import EarnPage from './EarnPage';
+import MoodSwing from './MoodSwing';
 
 import AdminOrders from './AdminOrders';
 import AdminLeadManager from './AdminLeadManager';
@@ -47,8 +56,13 @@ import AdminReports from './AdminReports';
 import AdminLiveStats from './AdminLiveStats';
 import AdminWithdrawals from './AdminWithdrawals';
 import AdminPayments from './AdminPayments';
+import AdminScholarships from './admin/AdminScholarships';
+import AdminScholarshipApplications from './admin/AdminScholarshipApplications';
+import AdminScholarshipRequest from './admin/AdminScholarshipRequest';
+import AdminScholarshipCreator from './admin/AdminScholarshipCreator';
 import ExpertDashboard from './ExpertDashboard';
 import ExpertOrderDetails from './ExpertOrderDetails';
+import ExpertScholarships from './expert/ExpertScholarships';
 import ExpertPayouts from './ExpertPayouts';
 import ExpertOrders from './ExpertOrders';
 import ExpertFeedback from './ExpertFeedback';
@@ -141,9 +155,9 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "506229543851-
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <StoreProvider>
-        <Toaster position="top-center" richColors />
-        <Router>
+      <Router>
+        <StoreProvider>
+          <Toaster position="top-center" richColors />
           <ScrollToTop />
           <Routes>
             {/* Public Routes */}
@@ -159,9 +173,19 @@ export default function App() {
             <Route path="/legal/:type" element={<Legal />} />
             <Route path="/join/:type" element={<InvitationPage />} />
             <Route path="/problem-solver" element={<ProblemSolver />} />
+            <Route path="/games" element={<GameZone />} />
+            <Route path="/games/pengu-3d" element={<Pengu3DAvalanche />} />
+            <Route path="/arcade" element={<ArcadePartnership />} />
+            <Route path="/scholarships" element={<Scholarships />} />
+            <Route path="/scholarships/:id" element={<ScholarshipDetails />} />
+            <Route path="/admin/scholarships" element={<AdminScholarships />} />
+            <Route path="/admin/scholarship-requests" element={<AdminScholarshipApplications />} />
+            <Route path="/admin/scholarship-request/:id" element={<AdminScholarshipRequest />} />
+            <Route path="/admin/scholarships/new" element={<AdminScholarshipCreator />} />
 
             {/* Student Routes */}
             <Route path="/student/dashboard" element={<StudentRouteGuard><StudentDashboard /></StudentRouteGuard>} />
+            <Route path="/student/scholarships" element={<StudentRouteGuard><ScholarshipApplication /></StudentRouteGuard>} />
             <Route path="/student/new-request" element={<StudentRouteGuard><NewRequest /></StudentRouteGuard>} />
             <Route path="/student/request/:id" element={<StudentRouteGuard><RequestDetails /></StudentRouteGuard>} />
             <Route path="/student/requests" element={<StudentRouteGuard><StudentOrders /></StudentRouteGuard>} />
@@ -174,6 +198,7 @@ export default function App() {
             <Route path="/student/messages" element={<StudentRouteGuard><Messages /></StudentRouteGuard>} />
             <Route path="/student/study-tools" element={<StudentRouteGuard><StudyTools /></StudentRouteGuard>} />
             <Route path="/student/earn" element={<EarnPage />} />
+            <Route path="/student/mood-swing" element={<StudentRouteGuard><MoodSwing /></StudentRouteGuard>} />
             <Route path="/student/settings" element={<StudentRouteGuard><Settings /></StudentRouteGuard>} />
 
             {/* Admin Routes */}
@@ -196,24 +221,30 @@ export default function App() {
             <Route path="/admin/carousel" element={<AdminRouteGuard><AdminCarousel /></AdminRouteGuard>} />
             <Route path="/admin/contacts" element={<AdminRouteGuard><AdminContacts /></AdminRouteGuard>} />
             <Route path="/admin/universal-solutions" element={<AdminRouteGuard><AdminUniversalSolutions /></AdminRouteGuard>} />
+            <Route path="/admin/scholarships" element={<AdminRouteGuard><AdminScholarships /></AdminRouteGuard>} />
+            <Route path="/admin/scholarships/new" element={<AdminRouteGuard><AdminScholarshipCreator /></AdminRouteGuard>} />
+            <Route path="/admin/scholarships/edit/:id" element={<AdminRouteGuard><AdminScholarshipCreator /></AdminRouteGuard>} />
 
             {/* Expert Routes */}
             <Route path="/expert/onboarding" element={<ExpertOnboarding />} />
             <Route path="/expert/dashboard" element={<ExpertRouteGuard><ExpertDashboard /></ExpertRouteGuard>} />
             <Route path="/expert/orders" element={<ExpertRouteGuard><ExpertOrders /></ExpertRouteGuard>} />
             <Route path="/expert/order/:id" element={<ExpertRouteGuard><ExpertOrderDetails /></ExpertRouteGuard>} />
+            <Route path="/expert/scholarships" element={<ExpertRouteGuard><ExpertScholarships /></ExpertRouteGuard>} />
             <Route path="/expert/feedback" element={<ExpertRouteGuard><ExpertFeedback /></ExpertRouteGuard>} />
             <Route path="/expert/earn" element={<ExpertRouteGuard><EarnPage /></ExpertRouteGuard>} />
             <Route path="/expert/payouts" element={<ExpertRouteGuard><ExpertPayouts /></ExpertRouteGuard>} />
             <Route path="/expert/messages" element={<ExpertRouteGuard><Messages /></ExpertRouteGuard>} />
+            <Route path="/expert/career-acceleration" element={<ExpertRouteGuard><CareerBoost /></ExpertRouteGuard>} />
+            <Route path="/expert/mood-swing" element={<ExpertRouteGuard><MoodSwing /></ExpertRouteGuard>} />
             <Route path="/expert/settings" element={<ExpertRouteGuard><Settings /></ExpertRouteGuard>} />
 
 
             {/* Catch All */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Router>
-      </StoreProvider>
+        </StoreProvider>
+      </Router>
     </GoogleOAuthProvider>
   );
 }
