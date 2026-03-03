@@ -6,9 +6,9 @@ import { useStore } from '../store';
 
 export function HeroCarousel() {
     const { carouselSlides } = useStore();
-    const activeSlides = carouselSlides
-        .filter(slide => slide.isActive)
-        .sort((a, b) => a.order - b.order);
+    const activeSlides = (carouselSlides || [])
+        .filter((slide: any) => slide.isActive)
+        .sort((a: any, b: any) => a.order - b.order);
 
     const [currentIndex, setCurrentIndex] = useState(0);
 

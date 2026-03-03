@@ -158,9 +158,9 @@ export function Scholarships() {
     };
 
     // Filter Logic: Search, Country, and Smart Match (if enabled)
-    const filteredScholarships = scholarships.filter(s => {
-        const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.country.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredScholarships = (scholarships || []).filter((s: any) => {
+        const matchesSearch = s.title?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
+            s.country?.toLowerCase().includes(searchQuery?.toLowerCase());
         const matchesCountry = selectedCountry === 'All' || s.country === selectedCountry;
 
         // Smart Match Filtering
