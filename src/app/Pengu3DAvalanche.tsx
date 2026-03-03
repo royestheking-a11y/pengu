@@ -246,7 +246,7 @@ function Loader() {
     );
 }
 
-function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin }: any) {
+function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileControls }: any) {
     const laneRef = useRef(1);
     const jumpRef = useRef(false);
     const speedRef = useRef(GAME_SPEED_START);
@@ -277,6 +277,21 @@ function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin }: any) {
         // Camera follow (Always active for smooth transitions)
         let camX = 0, camY = 5, camZ = 12, lookAhead = -30;
         if (isPlaying) {
+            // Apply mobile control overrides
+            if (mobileControls.current.left) {
+                laneRef.current = Math.max(0, laneRef.current - 1);
+                mobileControls.current.left = false;
+            }
+            if (mobileControls.current.right) {
+                laneRef.current = Math.min(2, laneRef.current - 1 + 2); // 1 + 2 = +1
+                mobileControls.current.right = false;
+            }
+            if (mobileControls.current.jump && !jumpRef.current) {
+                jumpRef.current = true;
+                setTimeout(() => jumpRef.current = false, 750);
+                mobileControls.current.jump = false;
+            }
+
             camX = LANES[laneRef.current] * 0.4;
             camY = 4.5 + (jumpRef.current ? 1.5 : 0);
             lookAhead = -25;
@@ -417,6 +432,9 @@ export default function Pengu3DAvalanche() {
     const { currentUser } = useStore();
     const navigate = useNavigate();
 
+    // Mobile control triggers
+    const mobileControls = useRef({ left: false, right: false, jump: false });
+
     const handleStart = () => {
         setGameState('PLAYING');
         setIsPaused(false);
@@ -525,8 +543,45 @@ export default function Pengu3DAvalanche() {
                             setCoins(c => c + (gold ? 10 : 1));
                             if (Math.random() > 0.95) setEggs(e => e + 1);
                         }}
+                        mobileControls={mobileControls}
                     />
                 </Canvas>
+
+                {/* Mobile Virtual D-PAD (Only visible when Playing) */}
+                <AnimatePresence>
+                    {gameState === 'PLAYING' && !isPaused && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 50 }}
+                            className="absolute bottom-8 inset-x-0 z-[90] flex justify-between items-center px-4 md:hidden pointer-events-none"
+                        >
+                            <div className="flex gap-2 pointer-events-auto">
+                                <button
+                                    onPointerDown={(e) => { e.preventDefault(); mobileControls.current.left = true; }}
+                                    className="size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
+                                >
+                                    <ArrowLeft className="size-10" />
+                                </button>
+                                <button
+                                    onPointerDown={(e) => { e.preventDefault(); mobileControls.current.right = true; }}
+                                    className="size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
+                                >
+                                    <ArrowLeft className="size-10 rotate-180" />
+                                </button>
+                            </div>
+
+                            <div className="pointer-events-auto">
+                                <button
+                                    onPointerDown={(e) => { e.preventDefault(); mobileControls.current.jump = true; }}
+                                    className="w-28 h-20 rounded-2xl bg-amber-500/80 backdrop-blur-md border-[3px] border-amber-300 shadow-xl flex items-center justify-center text-white active:bg-amber-600 active:scale-95 transition-all text-xl font-black uppercase tracking-widest italic"
+                                >
+                                    JUMP
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Overlays */}
                 <AnimatePresence>
