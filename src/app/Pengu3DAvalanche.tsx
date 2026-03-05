@@ -2,19 +2,14 @@ import React, { Suspense, useState, useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import {
     PerspectiveCamera,
-    Environment,
     useTexture,
-    ContactShadows,
     Trail,
     KeyboardControls,
     useKeyboardControls,
-    Html,
-    Float,
     Text,
     Image,
-    MeshReflectorMaterial
 } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette, ChromaticAberration, Noise } from '@react-three/postprocessing';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from './store';
@@ -235,24 +230,24 @@ function PenguModel({ laneRef, jumpRef, isGameOver, isPaused }: any) {
     );
 }
 
-function Loader() {
-    return (
-        <Html center>
-            <div className="flex flex-col items-center gap-4 min-w-[300px]">
-                <div className="size-20 border-4 border-[#FFC107] border-t-transparent rounded-full animate-spin" />
-                <p className="text-[#0A0E27] font-black uppercase tracking-widest bg-white/80 px-4 py-2 rounded-xl">Waking up Pengu...</p>
-            </div>
-        </Html>
-    );
-}
-
-function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileControls }: any) {
+function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileControls, onLoaded }: any) {
     const laneRef = useRef(1);
     const jumpRef = useRef(false);
     const speedRef = useRef(GAME_SPEED_START);
     const itemsRef = useRef<any[]>([]);
     const lastSpawnRef = useRef(0);
     const [activeItems, setActiveItems] = useState<any[]>([]);
+    const onLoadedRef = useRef(onLoaded);
+
+    useEffect(() => {
+        onLoadedRef.current = onLoaded;
+    }, [onLoaded]);
+
+    useEffect(() => {
+        if (onLoadedRef.current) {
+            onLoadedRef.current();
+        }
+    }, []);
 
     const [, getKeys] = useKeyboardControls();
     const { camera } = useThree();
@@ -260,13 +255,6 @@ function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileCon
     const pathTexture = useTexture('/assets/textures/snow_path.png');
     pathTexture.wrapS = pathTexture.wrapT = THREE.RepeatWrapping;
     pathTexture.repeat.set(1, 40);
-
-    // Explicitly load textures before rendering
-    useTexture([
-        '/assets/textures/castle_bg.png',
-        '/assets/textures/gold_albedo.png',
-        '/assets/textures/rock_albedo.png'
-    ]);
 
     useFrame((state, delta) => {
         const isPlaying = gameState === 'PLAYING';
@@ -355,7 +343,7 @@ function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileCon
     }, [gameState]);
 
     return (
-        <Suspense fallback={<Loader />}>
+        <group>
             <PerspectiveCamera makeDefault fov={70} />
             <ambientLight intensity={0.8} />
             <directionalLight position={[20, 40, 20]} intensity={1.5} castShadow />
@@ -409,13 +397,16 @@ function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileCon
                 </group>
             ))}
 
-            <Environment preset="apartment" />
-            <ContactShadows opacity={0.4} scale={30} blur={2.5} far={8} color="#000000" />
+            {/* Lightweight environment lighting (no HDR download) */}
+            <hemisphereLight args={['#b1e1ff', '#b97a20', 0.6]} />
+            <pointLight position={[-10, 10, -20]} intensity={0.5} color="#E3F2FD" />
+            <pointLight position={[10, 15, 10]} intensity={0.3} color="#FFF8E1" />
+            <fog attach="fog" args={['#81D4FA', 60, 200]} />
 
             <EffectComposer multisampling={0} enableNormalPass={false}>
                 <Bloom luminanceThreshold={1} intensity={0.8} mipmapBlur />
             </EffectComposer>
-        </Suspense>
+        </group>
     );
 }
 
@@ -423,6 +414,7 @@ function World({ gameState, isPaused, setIsPaused, onGameOver, onCoin, mobileCon
 
 export default function Pengu3DAvalanche() {
     const [gameState, setGameState] = useState<'MENU' | 'PLAYING' | 'GAMEOVER'>('MENU');
+    const [isLoaded, setIsLoaded] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [score, setScore] = useState(0);
     const [coins, setCoins] = useState(0);
@@ -484,45 +476,45 @@ export default function Pengu3DAvalanche() {
 
     return (
         <KeyboardControls map={keyboardMap}>
-            <div className="w-full h-screen bg-[#81D4FA] overflow-hidden relative font-['Outfit'] select-none">
+            <div className="fixed inset-0 w-full h-[100dvh] bg-[#81D4FA] overflow-hidden font-['Outfit'] select-none touch-none">
                 <SEO title="Pengu's 3D Avalanche" description="AAA Penguin Runner" url="https://pengu.work.gd/arcade/pengu-3d" />
 
                 {/* UI Overlay (Premium HUD) */}
-                <div className="absolute inset-x-0 top-0 p-4 md:p-10 z-[100] flex justify-between items-start pointer-events-none">
+                <div className="absolute inset-x-0 top-0 p-3 sm:p-5 md:p-10 z-[100] flex justify-between items-start pointer-events-none">
                     {/* Top Left Stats - Condensed for Mobile */}
-                    <div className="flex flex-col gap-2 md:gap-3 pointer-events-auto scale-90 md:scale-100 origin-top-left">
-                        <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-[#3E2723]/90 backdrop-blur-xl border border-white/10 shadow-2xl">
-                            <div className="size-7 md:size-9 rounded-full bg-[#5D4037] flex items-center justify-center shadow-lg border border-white/20">
+                    <div className="flex flex-col gap-2 md:gap-3 pointer-events-auto scale-[0.75] sm:scale-90 md:scale-100 origin-top-left">
+                        <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-[#3E2723]/90 backdrop-blur-xl border border-white/10 shadow-2xl shrink-0 whitespace-nowrap">
+                            <div className="size-7 md:size-9 rounded-full bg-[#5D4037] flex items-center justify-center shadow-lg border border-white/20 shrink-0">
                                 <Coins className="size-4 md:size-5 text-[#FFD54F]" fill="currentColor" />
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col min-w-[50px]">
                                 <span className="text-[8px] md:text-[10px] uppercase font-black text-white/40 leading-none mb-1">Coins</span>
                                 <span className="text-lg md:text-2xl font-black text-white leading-none tracking-tight">{(currentUser?.wallet?.coins || 0) + coins}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-[#0A0E27]/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-                            <div className="size-7 md:size-9 rounded-full bg-pink-100 flex items-center justify-center shadow-lg border border-white/20">
+                        <div className="flex items-center gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-[#0A0E27]/40 backdrop-blur-xl border border-white/10 shadow-2xl shrink-0 whitespace-nowrap">
+                            <div className="size-7 md:size-9 rounded-full bg-pink-100 flex items-center justify-center shadow-lg border border-white/20 shrink-0">
                                 <Egg className="size-4 md:size-5 text-[#AD1457]" fill="currentColor" />
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col min-w-[50px]">
                                 <span className="text-[8px] md:text-[10px] uppercase font-black text-white/40 leading-none mb-1">Eggs</span>
                                 <span className="text-lg md:text-2xl font-black text-white leading-none tracking-tight">{eggs}</span>
                             </div>
                         </div>
 
                         {!currentUser && (
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-amber-500 text-[#3E2723] shadow-lg animate-bounce">
-                                <AlertCircle className="size-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">GUEST MODE (NO SAVING)</span>
+                            <div className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-amber-500 text-[#3E2723] shadow-lg animate-bounce shrink-0 whitespace-nowrap mt-1">
+                                <AlertCircle className="size-3 md:size-4 shrink-0" />
+                                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest leading-tight">GUEST (NO SAVING)</span>
                             </div>
                         )}
                     </div>
 
                     {/* Top Center Score - Responsive & Premium */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-4 md:top-8 pointer-events-auto scale-75 md:scale-100 origin-top">
-                        <div className="px-8 md:px-14 py-3 md:py-4 rounded-[1.5rem] md:rounded-[2rem] bg-[#2D1B18] border-[4px] md:border-[6px] border-[#4E342E] shadow-[0_8px_20px_rgba(0,0,0,0.4),0_4px_0_#1B0D0B] flex flex-col items-center min-w-[140px] md:min-w-[200px]">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-4 sm:top-5 md:top-8 pointer-events-auto scale-[0.65] sm:scale-80 md:scale-100 origin-top">
+                        <div className="px-8 md:px-14 py-3 md:py-4 rounded-[1.5rem] md:rounded-[2rem] bg-[#2D1B18] border-[4px] md:border-[6px] border-[#4E342E] shadow-[0_8px_20px_rgba(0,0,0,0.4),0_4px_0_#1B0D0B] flex flex-col items-center min-w-[120px] md:min-w-[200px]">
                             <span className="text-[8px] md:text-[10px] font-black text-[#8D6E63] uppercase tracking-[0.2em] mb-1">CURRENT SCORE</span>
-                            <div className="flex items-center gap-3 md:gap-4">
+                            <div className="flex items-center gap-2 md:gap-4">
                                 <Trophy className="size-5 md:size-7 text-[#FFD54F]" fill="currentColor" />
                                 <span className="text-3xl md:text-5xl font-black text-white tracking-widest font-['Outfit']">{score}</span>
                             </div>
@@ -530,7 +522,7 @@ export default function Pengu3DAvalanche() {
                     </div>
 
                     {/* Top Right Pause */}
-                    <div className="flex gap-4 pointer-events-auto scale-90 md:scale-100 origin-top-right">
+                    <div className="flex gap-4 pointer-events-auto scale-[0.75] sm:scale-90 md:scale-100 origin-top-right">
                         <button
                             onClick={() => setIsPaused(!isPaused)}
                             className="size-12 md:size-16 rounded-2xl bg-[#3E2723] border-4 border-[#4E342E] shadow-xl flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all group"
@@ -542,17 +534,20 @@ export default function Pengu3DAvalanche() {
 
                 {/* 3D Scene */}
                 <Canvas shadows dpr={[1, 2]}>
-                    <World
-                        gameState={gameState}
-                        isPaused={isPaused}
-                        setIsPaused={setIsPaused}
-                        onGameOver={() => setGameState('GAMEOVER')}
-                        onCoin={(gold: boolean) => {
-                            setCoins(c => c + (gold ? 10 : 1));
-                            if (Math.random() > 0.95) setEggs(e => e + 1);
-                        }}
-                        mobileControls={mobileControls}
-                    />
+                    <Suspense fallback={null}>
+                        <World
+                            gameState={gameState}
+                            isPaused={isPaused}
+                            setIsPaused={setIsPaused}
+                            onGameOver={() => setGameState('GAMEOVER')}
+                            onCoin={(gold: boolean) => {
+                                setCoins(c => c + (gold ? 10 : 1));
+                                if (Math.random() > 0.95) setEggs(e => e + 1);
+                            }}
+                            mobileControls={mobileControls}
+                            onLoaded={() => setIsLoaded(true)}
+                        />
+                    </Suspense>
                 </Canvas>
 
                 {/* Mobile Virtual D-PAD (Only visible when Playing) */}
@@ -562,29 +557,35 @@ export default function Pengu3DAvalanche() {
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 50 }}
-                            className="absolute bottom-8 inset-x-0 z-[90] flex justify-between items-center px-4 md:hidden pointer-events-none"
+                            className="absolute bottom-6 sm:bottom-8 inset-x-0 z-[90] flex justify-between items-center px-4 md:hidden pointer-events-none"
                         >
-                            <div className="flex gap-2 pointer-events-auto">
+                            {/* Left Button */}
+                            <div className="pointer-events-auto">
                                 <button
                                     onPointerDown={(e) => { e.preventDefault(); mobileControls.current.left = true; }}
-                                    className="size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
+                                    className="size-16 sm:size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
                                 >
-                                    <ArrowLeft className="size-10" />
-                                </button>
-                                <button
-                                    onPointerDown={(e) => { e.preventDefault(); mobileControls.current.right = true; }}
-                                    className="size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
-                                >
-                                    <ArrowLeft className="size-10 rotate-180" />
+                                    <ArrowLeft className="size-8 sm:size-10" />
                                 </button>
                             </div>
 
-                            <div className="pointer-events-auto">
+                            {/* Center Jump Button */}
+                            <div className="pointer-events-auto flex-1 flex justify-center px-4">
                                 <button
                                     onPointerDown={(e) => { e.preventDefault(); mobileControls.current.jump = true; }}
-                                    className="w-28 h-20 rounded-2xl bg-amber-500/80 backdrop-blur-md border-[3px] border-amber-300 shadow-xl flex items-center justify-center text-white active:bg-amber-600 active:scale-95 transition-all text-xl font-black uppercase tracking-widest italic"
+                                    className="w-full max-w-[120px] h-16 sm:h-20 rounded-2xl bg-amber-500/80 backdrop-blur-md border-[3px] border-amber-300 shadow-xl flex items-center justify-center text-white active:bg-amber-600 active:scale-95 transition-all text-lg sm:text-xl font-black uppercase tracking-widest italic"
                                 >
                                     JUMP
+                                </button>
+                            </div>
+
+                            {/* Right Button */}
+                            <div className="pointer-events-auto">
+                                <button
+                                    onPointerDown={(e) => { e.preventDefault(); mobileControls.current.right = true; }}
+                                    className="size-16 sm:size-20 rounded-2xl bg-white/20 backdrop-blur-md border-[3px] border-white/40 shadow-xl flex items-center justify-center text-white active:bg-white/40 active:scale-95 transition-all"
+                                >
+                                    <ArrowLeft className="size-8 sm:size-10 rotate-180" />
                                 </button>
                             </div>
                         </motion.div>
@@ -623,17 +624,24 @@ export default function Pengu3DAvalanche() {
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="absolute inset-0 z-[110] flex flex-col items-center justify-center bg-[#0A0E27]/40 backdrop-blur-md text-center"
                         >
-                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="p-12 relative">
-                                <h1 className="text-[12vw] md:text-[10rem] font-black text-white drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] italic uppercase tracking-tighter leading-[0.85] mb-12">
-                                    SNOW<br />
-                                    <span className="text-[#8D6E63]">RUNNER</span>
+                            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="p-8 md:p-12 relative flex flex-col items-center">
+                                <h1 className="text-[15vw] md:text-[10rem] font-black text-white drop-shadow-[0_15px_30px_rgba(0,0,0,0.5)] italic uppercase tracking-tighter leading-[0.85] mb-8 md:mb-12">
+                                    PENGU<br />
+                                    <span className="text-[#8D6E63]">AVALANCHE</span>
                                 </h1>
-                                <button
-                                    onClick={handleStart}
-                                    className="group relative px-20 py-10 rounded-[3rem] bg-[#3E2723] text-white font-black text-4xl shadow-[0_15px_60px_rgba(62,39,35,0.4)] hover:scale-110 active:scale-95 transition-all border-b-[12px] border-[#1B0D0B]"
-                                >
-                                    START DASH
-                                </button>
+                                {isLoaded ? (
+                                    <button
+                                        onClick={handleStart}
+                                        className="group relative px-12 md:px-20 py-6 md:py-10 rounded-[2rem] md:rounded-[3rem] bg-[#3E2723] text-white font-black text-2xl md:text-4xl shadow-[0_15px_60px_rgba(62,39,35,0.4)] hover:scale-110 active:scale-95 transition-all border-b-[8px] md:border-b-[12px] border-[#1B0D0B] whitespace-nowrap"
+                                    >
+                                        START DASH
+                                    </button>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 bg-[#0A0E27]/80 p-6 md:p-8 rounded-[2rem] border-2 border-white/10 backdrop-blur-xl">
+                                        <div className="size-10 md:size-12 border-4 border-[#FFC107] border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-white text-sm md:text-lg font-black uppercase tracking-widest">Waking up Pengu...</p>
+                                    </div>
+                                )}
                             </motion.div>
                         </motion.div>
                     )}

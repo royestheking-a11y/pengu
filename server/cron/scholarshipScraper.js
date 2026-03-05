@@ -91,6 +91,23 @@ ${rawText}
 };
 
 /**
+ * Safely parse a deadline string into a Date, or return null.
+ */
+const safeParseDeadline = (value) => {
+    if (!value || typeof value !== 'string') return null;
+
+    // Known non-date keywords
+    const nonDateKeywords = ['rolling', 'tba', 'tbd', 'check', 'various', 'open', 'ongoing', 'n/a', 'not specified'];
+    if (nonDateKeywords.some(kw => value.toLowerCase().includes(kw))) return null;
+
+    const parsed = new Date(value);
+    // Check if the parsed date is valid
+    if (isNaN(parsed.getTime())) return null;
+
+    return parsed;
+};
+
+/**
  * Main Cron Job execution pipeline
  */
 export const runNightShift = async () => {
@@ -110,34 +127,44 @@ export const runNightShift = async () => {
         console.log(`[Groq] Found ${extractedScholarships.length} potential scholarships.`);
 
         for (const scholarship of extractedScholarships) {
-            console.log(`\n[3] Auditing: ${scholarship.title}`);
-            const isVerified = await verifyScholarshipWithGemini(scholarship);
+            try {
+                console.log(`\n[3] Auditing: ${scholarship.title}`);
+                const isVerified = await verifyScholarshipWithGemini(scholarship);
 
-            if (isVerified) {
-                console.log(`[4] Verification Passed. Checking if exists in DB...`);
+                if (isVerified) {
+                    console.log(`[4] Verification Passed. Checking if exists in DB...`);
 
-                // Prevent duplicates based on title
-                const exists = await Scholarship.findOne({ title: scholarship.title });
+                    // Prevent duplicates based on title
+                    const exists = await Scholarship.findOne({ title: scholarship.title });
 
-                if (!exists) {
-                    console.log(`[5] Inserting into Draft Inbox...`);
-                    await Scholarship.create({
-                        title: scholarship.title,
-                        country: scholarship.country,
-                        degreeLevel: scholarship.degreeLevel,
-                        fundingType: scholarship.fundingType,
-                        deadline: scholarship.deadline,
-                        description: scholarship.description,
-                        exampleSopUrl: scholarship.exampleSopUrl, // using this field to store the official link
-                        status: 'DRAFT',
-                        baseFee: 0 // Admin will set this during review
-                    });
-                    console.log(`[SUCCESS] Draft created for ${scholarship.title}`);
+                    if (!exists) {
+                        console.log(`[5] Inserting into Draft Inbox...`);
+                        const parsedDeadline = safeParseDeadline(scholarship.deadline);
+                        if (!parsedDeadline) {
+                            console.log(`[INFO] Non-date deadline "${scholarship.deadline}" — storing without deadline.`);
+                        }
+
+                        await Scholarship.create({
+                            title: scholarship.title,
+                            country: scholarship.country,
+                            degreeLevel: scholarship.degreeLevel,
+                            fundingType: scholarship.fundingType,
+                            deadline: parsedDeadline,
+                            description: scholarship.description,
+                            exampleSopUrl: scholarship.exampleSopUrl, // using this field to store the official link
+                            status: 'DRAFT',
+                            baseFee: 0 // Admin will set this during review
+                        });
+                        console.log(`[SUCCESS] Draft created for ${scholarship.title}`);
+                    } else {
+                        console.log(`[SKIPPED] Scholarship already exists in DB.`);
+                    }
                 } else {
-                    console.log(`[SKIPPED] Scholarship already exists in DB.`);
+                    console.log(`[REJECTED] Failed Gemini Verification Audit.`);
                 }
-            } else {
-                console.log(`[REJECTED] Failed Gemini Verification Audit.`);
+            } catch (err) {
+                console.error(`[ERROR] Failed to process scholarship "${scholarship.title}":`, err.message);
+                // Continue to next scholarship instead of crashing the server
             }
         }
     }
