@@ -4,6 +4,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
+import { authLimiter, aiLimiter } from './middleware/rateLimiter.js';
 
 // Load env vars
 dotenv.config();
@@ -57,8 +58,23 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Body limit: 15mb for JSON (file uploads use multer/multipart — unaffected)
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+// Auth: 10 requests per 15 minutes per IP (brute-force protection)
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/google', authLimiter);
+
+// AI routes: 5 requests per minute per IP (quota protection)
+app.use('/api/study-tools', aiLimiter);
+app.use('/api/companion', aiLimiter);
+app.use('/api/career-acceleration', aiLimiter);
+app.use('/api/career-reviews', aiLimiter);
+app.use('/api/syllabus', aiLimiter);
+app.use('/api/resume-builder', aiLimiter);
 
 // Initialize Cron Jobs
 import setupCronJobs, { runNightShift } from './cron/scholarshipScraper.js';
@@ -152,10 +168,12 @@ app.use('/api/scholarships', scholarshipRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-    const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    // Respect structured statusCode set by groqClient / geminiCompanion on 429 errors
+    const statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
     res.status(statusCode);
     res.json({
         message: err.message,
+        ...(err.retryAfter && { retryAfter: err.retryAfter }),
         stack: process.env.NODE_ENV === 'production' ? null : err.stack,
     });
 });

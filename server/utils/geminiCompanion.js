@@ -56,30 +56,50 @@ export const generateCompanionResponse = async (history, userGender = 'unknown')
         }
     };
 
-    let attempts = 0;
-    while (attempts < GEMINI_API_KEYS.length) {
-        const key = getNextKey();
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-            const response = await axios.post(url, payload, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+    const MAX_ROUNDS = 3;
+    const BACKOFF_MS = [500, 1000, 2000];
 
-            const replyText = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (replyText) {
-                return replyText;
-            } else {
-                throw new Error("Invalid response format from Gemini");
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+        let allRateLimited = true;
+        let attempts = 0;
+
+        while (attempts < GEMINI_API_KEYS.length) {
+            const key = getNextKey();
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+                const response = await axios.post(url, payload, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const replyText = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (replyText) return replyText;
+                throw new Error('Invalid response format from Gemini');
+            } catch (error) {
+                const status = error.response?.status;
+                console.error(`Gemini API error with key ending in ${key.slice(-4)}:`, error.response?.data || error.message);
+
+                if (status === 429 || status >= 500) {
+                    // Rate limited or server error — try next key
+                    attempts++;
+                    continue;
+                }
+                // Non-retryable error (bad request, auth, etc.)
+                allRateLimited = false;
+                throw error;
             }
-        } catch (error) {
-            console.error(`Gemini API error with key ending in ${key.slice(-4)}:`, error.response?.data || error.message);
-            attempts++;
-            if (attempts >= GEMINI_API_KEYS.length) {
-                throw new Error("All Gemini API keys failed.");
-            }
-            console.log("Retrying with next Gemini key...");
+        }
+
+        // All keys failed this round — wait before retrying if rounds remain
+        if (allRateLimited && round < MAX_ROUNDS - 1) {
+            const delay = BACKOFF_MS[round];
+            console.warn(`[Gemini] All keys rate-limited. Waiting ${delay}ms before retry round ${round + 2}/${MAX_ROUNDS}...`);
+            await new Promise(res => setTimeout(res, delay));
         }
     }
+
+    // All retries exhausted — surface a structured 429 to the route handler
+    const friendlyError = new Error('Pengu AI is busy right now — please wait a moment and try again.');
+    friendlyError.statusCode = 429;
+    friendlyError.retryAfter = 30;
+    throw friendlyError;
 };

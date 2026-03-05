@@ -20,5 +20,8 @@ const gameSessionSchema = new mongoose.Schema({
 // Compound index for querying global leaderboards fast
 gameSessionSchema.index({ gameId: 1, score: -1 });
 
+// TTL Index: auto-delete game sessions older than 30 days (2,592,000 seconds)
+gameSessionSchema.index({ timestamp: 1 }, { expireAfterSeconds: 2592000 });
+
 const GameSession = mongoose.model('GameSession', gameSessionSchema);
 export default GameSession;

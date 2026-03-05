@@ -31,6 +31,9 @@ const companionChatSchema = mongoose.Schema(
     }
 );
 
+// TTL Index: auto-delete companion chat logs after 30 days (in seconds: 30 × 24 × 60 × 60)
+companionChatSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
+
 const CompanionChat = mongoose.model('CompanionChat', companionChatSchema);
 
 export default CompanionChat;

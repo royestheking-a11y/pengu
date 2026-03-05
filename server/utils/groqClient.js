@@ -34,26 +34,42 @@ class GroqManager {
     }
 
     async createChatCompletion(options) {
-        let lastError;
+        const MAX_ROUNDS = 3;
+        const BACKOFF_MS = [500, 1000, 2000]; // Exponential backoff delays
 
-        // Try each key at most once per request
-        for (let i = 0; i < this.clients.length; i++) {
-            const client = this.getClient();
-            try {
-                return await client.chat.completions.create(options);
-            } catch (error) {
-                lastError = error;
-                console.error(`[GroqManager] Error with key index ${(this.currentIndex - 1 + this.clients.length) % this.clients.length}:`, error.message);
+        for (let round = 0; round < MAX_ROUNDS; round++) {
+            let allRateLimited = true;
 
-                // If it's a rate limit or server error, try the next key
-                if (error.status === 429 || error.status >= 500) {
-                    console.log('[GroqManager] Retrying with next available key...');
-                    continue;
+            for (let i = 0; i < this.clients.length; i++) {
+                const client = this.getClient();
+                try {
+                    return await client.chat.completions.create(options);
+                } catch (error) {
+                    const keyIdx = (this.currentIndex - 1 + this.clients.length) % this.clients.length;
+                    console.error(`[GroqManager] Error with key index ${keyIdx}:`, error.message);
+
+                    if (error.status === 429 || error.status >= 500) {
+                        console.log('[GroqManager] Retrying with next available key...');
+                        continue;
+                    }
+                    // Non-retryable error — throw immediately
+                    allRateLimited = false;
+                    throw error;
                 }
-                throw error;
+            }
+
+            if (allRateLimited && round < MAX_ROUNDS - 1) {
+                const delay = BACKOFF_MS[round];
+                console.warn(`[GroqManager] All keys rate-limited. Waiting ${delay}ms before retry round ${round + 2}/${MAX_ROUNDS}...`);
+                await new Promise(res => setTimeout(res, delay));
             }
         }
-        throw lastError;
+
+        // All retries exhausted — surface a structured 429 to the route handler
+        const friendlyError = new Error('Pengu AI is busy right now — please wait a moment and try again.');
+        friendlyError.statusCode = 429;
+        friendlyError.retryAfter = 30;
+        throw friendlyError;
     }
 
     async ask(prompt, options = {}) {

@@ -21,5 +21,8 @@ const careerReviewSchema = new mongoose.Schema({
     date: { type: String, required: true } // e.g. "Oct 15" format used in UI
 }, { timestamps: true });
 
+// TTL Index: auto-delete career review documents after 30 days (2,592,000 seconds)
+careerReviewSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
+
 const CareerReview = mongoose.model('CareerReview', careerReviewSchema);
 export default CareerReview;
