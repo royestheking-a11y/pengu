@@ -14,11 +14,12 @@ const connectDB = async () => {
             logErrorSync('MONGO_URI is not defined in environment variables');
             return;
         }
+        console.log('Attempting to connect to MongoDB Atlas...');
         const conn = await mongoose.connect(process.env.MONGO_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+        console.log(`Database Name: ${conn.connection.name}`);
     } catch (error) {
-        logErrorSync(`Connection Failed: ${error.message}`);
-        // Remove process.exit(1) to allow the server to start and show logs
+        logErrorSync(`❌ Connection Failed: ${error.message}`);
     }
 };
 

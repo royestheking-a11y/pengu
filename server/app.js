@@ -33,6 +33,9 @@ const allowedOrigins = [
     "http://localhost:5177",
     "https://pengu-six.vercel.app",
     "https://pengu.work.gd",
+    "https://pengui.tech",
+    "https://www.pengui.tech",
+    "chrome-extension://lmneidfkcpfhghckmojlklfecekbdoik",
     process.env.FRONTEND_URL
 ].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
 
@@ -58,9 +61,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// Body limit: 15mb for JSON (file uploads use multer/multipart — unaffected)
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+// Body limit: 50mb for JSON (file uploads can be large for CV/CL buffers)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ── Rate Limiting ─────────────────────────────────────────────────────────────
 // Auth: 10 requests per 15 minutes per IP (brute-force protection)
@@ -76,43 +79,16 @@ app.use('/api/career-reviews', aiLimiter);
 app.use('/api/syllabus', aiLimiter);
 app.use('/api/resume-builder', aiLimiter);
 
-// Initialize Cron Jobs
-import setupCronJobs, { runNightShift } from './cron/scholarshipScraper.js';
-setupCronJobs();
-
-
 // Socket.io Setup
 import { initSocket } from './socket.js';
 const io = initSocket(httpServer);
-
-// Render Keep-Alive Loop
-import startKeepAlive from './utils/keepAlive.js';
-if (process.env.NODE_ENV === 'production') {
-    startKeepAlive();
-}
-
-// Routes Placeholder
-app.get('/', (req, res) => {
-    res.send('Pengu Assistant API is running...');
-});
-
-// Admin manual trigger for scraper (testing only)
-app.post('/api/admin/trigger-scraper', async (req, res) => {
-    try {
-        // Run without awaiting so we don't block the request timeout
-        runNightShift();
-        res.status(200).json({ message: 'Night Shift scraper triggered successfully. Check server logs.' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import requestRoutes from './routes/requestRoutes.js';
+import quoteRoutes from './routes/quoteRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
-
 import expertRoutes from './routes/expertRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
@@ -125,11 +101,10 @@ import expertAppRoutes from './routes/expertAppRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import syllabusRoutes from './routes/syllabusRoutes.js';
 import careerReviewRoutes from './routes/careerReviewRoutes.js';
-import systemRoutes from './routes/systemRoutes.js';
-import quoteRoutes from './routes/quoteRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
-import careerTemplateRoutes from './routes/careerTemplateRoutes.js';
+import systemRoutes from './routes/systemRoutes.js';
 import careerAccelerationRoutes from './routes/careerAccelerationRoutes.js';
+import careerTemplateRoutes from './routes/careerTemplateRoutes.js';
 import studyToolsRoutes from './routes/studyToolsRoutes.js';
 import universalTicketRoutes from './routes/universalTicketRoutes.js';
 import leadRoutes from './routes/leadRoutes.js';
@@ -137,6 +112,7 @@ import resumeBuilderRoutes from './routes/resumeBuilderRoutes.js';
 import gameRoutes from './routes/gameRoutes.js';
 import companionRoutes from './routes/companionRoutes.js';
 import scholarshipRoutes from './routes/scholarshipRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/requests', requestRoutes);
@@ -165,6 +141,7 @@ app.use('/api/resume-builder', resumeBuilderRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/companion', companionRoutes);
 app.use('/api/scholarships', scholarshipRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

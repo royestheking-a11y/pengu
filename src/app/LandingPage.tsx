@@ -28,6 +28,7 @@ import { useStore } from './store';
 import { HomeSkeleton } from './components/HomeSkeleton';
 import SEO from './components/SEO';
 import SocialSchema from './components/SocialSchema';
+import { getSiteUrl } from '../config';
 import {
   ReviewsSection
 } from './ReviewsSection';
@@ -64,7 +65,7 @@ export default function LandingPage() {
       <SEO
         title="Premium Academic OS & Career Accelerator"
         description="Meet Pengu. The premium workspace for students and professionals. Use our AI Live Canvas, secure expert assignment support, and build your career portfolio."
-        url="https://pengu.work.gd/"
+        url={getSiteUrl()}
         keywords="premium academic support, AI study workspace, career acceleration platform, university assignment help, Pengu platform"
       />
       <SocialSchema />
