@@ -63,10 +63,10 @@ export default function LandingPage() {
   return (
     <PublicLayout>
       <SEO
-        title="Premium Academic OS & Career Accelerator"
+        title="Pengui.tech | Premium Academic OS & Career Accelerator"
         description="Meet Pengu. The premium workspace for students and professionals. Use our AI Live Canvas, secure expert assignment support, and build your career portfolio."
-        url={getSiteUrl()}
-        keywords="premium academic support, AI study workspace, career acceleration platform, university assignment help, Pengu platform"
+        url="/"
+        keywords="premium academic support, AI study workspace, career acceleration platform, university assignment help, Pengu platform, pengui.tech"
       />
       <SocialSchema />
       <div className="bg-[#FAFAFA]">

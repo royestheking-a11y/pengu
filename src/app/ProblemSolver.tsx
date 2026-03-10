@@ -173,10 +173,10 @@ export default function ProblemSolver() {
     return (
         <PublicLayout>
             <SEO
-                title="The Universal Problem Solver"
+                title="AI Problem Solver | Expert Academic Solutions | Pengui.tech"
                 description="Stuck on a complex project? Drop your files, rubrics, or messy datasets into the Pengu Solver. Our AI and expert team will diagnose and fix it."
-                url="https://pengu.work.gd/problem-solver"
-                keywords="custom academic solutions, fix formatting issues, messy data presentation, expert academic triage, Pengu solver"
+                url="/problem-solver"
+                keywords="custom academic solutions, fix formatting issues, messy data presentation, expert academic triage, Pengu solver, AI study help"
             />
             <div className="bg-[#FAFAFA] min-h-screen">
                 {/* Page Header */}

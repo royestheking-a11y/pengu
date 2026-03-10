@@ -6,10 +6,10 @@ export default function About() {
   return (
     <PublicLayout>
       <SEO
-        title="About Us | Pengu Premium OS"
+        title="About Us | Pengui.tech Premium OS"
         description="Learn about Pengu's mission to empower students with expert support, AI study tools, global scholarships, and career acceleration."
-        url="https://pengu.work.gd/about"
-        keywords="about Pengu, premium academic OS, study abroad, expert mentorship, student empowerment"
+        url="/about"
+        keywords="about Pengu, premium academic OS, study abroad, expert mentorship, student empowerment, pengui.tech"
       />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">
         <div className="bg-white border-b border-stone-100 py-16 px-4">

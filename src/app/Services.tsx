@@ -9,10 +9,17 @@ import {
 import { Button } from './components/ui/button';
 import { Link } from 'react-router-dom';
 import { SERVICES } from './data/services';
+import SEO from './components/SEO';
 
 export default function Services() {
   return (
     <PublicLayout>
+      <SEO
+        title="Our Services | Expert Academic Support | Pengui.tech"
+        description="Explore our range of academic services, from assignment help and SOP writing to AI study tools and career mentorship."
+        url="/services"
+        keywords="academic services, assignment help, SOP writing, career mentorship, AI study tools, expert tutoring, pengui.tech"
+      />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">
         {/* Hero */}
         <div className="bg-[#3E2723] text-white py-20 px-4">

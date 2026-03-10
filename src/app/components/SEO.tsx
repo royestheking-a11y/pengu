@@ -36,11 +36,14 @@ const SEO: React.FC<SEOProps> = ({
             <meta property="og:description" content={description} />
             <meta property="og:url" content={finalUrl} />
             <meta property="og:site_name" content={siteName} />
+            <meta property="og:image" content={`${siteUrl}/og-image.png`} />
 
             {/* Twitter Tags */}
             <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:url" content={finalUrl} />
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
+            <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
         </Helmet>
     );
 };

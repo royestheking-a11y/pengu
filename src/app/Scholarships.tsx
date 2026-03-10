@@ -306,10 +306,10 @@ export function Scholarships() {
     return (
         <PublicLayout>
             <SEO
-                title="Global Scholarships | Pengu"
+                title="Global Scholarships | Full-funded Study Abroad Matches | Pengui.tech"
                 description="Discover and match with full-ride, partial, and exclusive global scholarships using Pengu's AI Smart Match algorithm. Study abroad made easy."
-                url="https://pengu.work.gd/scholarships"
-                keywords="scholarships, study abroad, undergraduate scholarships, PhD funding, AI matching, Pengu smart match"
+                url="/scholarships"
+                keywords="scholarships, study abroad, undergraduate scholarships, PhD funding, AI matching, Pengu smart match, pengui.tech"
             />
             <div className="min-h-screen bg-stone-50 pt-24 pb-20">
 

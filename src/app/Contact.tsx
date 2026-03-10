@@ -4,6 +4,7 @@ import { Button } from './components/ui/button';
 import { Mail, MapPin, Phone, MessageSquare, Clock } from 'lucide-react';
 import api from '../lib/api';
 import { toast } from 'sonner';
+import SEO from './components/SEO';
 
 export default function Contact() {
   const [formData, setFormData] = React.useState({
@@ -32,6 +33,12 @@ export default function Contact() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Contact Us | 24/7 Support | Pengui.tech"
+        description="Got questions? Our support team is here to help you with your academic journey. Reach out via email, WhatsApp, or live chat."
+        url="/contact"
+        keywords="contact pengu, student support, academic help, 24/7 support, contact team, pengui.tech"
+      />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">
         <div className="bg-white border-b border-stone-100 py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">

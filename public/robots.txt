@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /student/
+Disallow: /expert/
+Disallow: /admin/
+
+Sitemap: https://pengui.tech/sitemap.xml
