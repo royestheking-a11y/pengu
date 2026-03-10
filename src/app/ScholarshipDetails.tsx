@@ -123,9 +123,9 @@ export default function ScholarshipDetails() {
     return (
         <PublicLayout>
             <SEO
-                title={`${scholarship.title} in ${scholarship.country} | Pengu`}
+                title={`${scholarship.title} in ${scholarship.country} | Pengui.tech`}
                 description={`Apply for the ${scholarship.title} at ${scholarship.university}. Funding type: ${scholarship.fundingType}. Deadline: ${new Date(scholarship.deadline).toLocaleDateString()}.`}
-                url={`https://pengu.work.gd/scholarships/${scholarship._id}`}
+                url={`https://pengui.tech/scholarships/${scholarship._id}`}
                 keywords={`${scholarship.country} scholarship, ${scholarship.degreeLevel.join(', ')} scholarship, ${scholarship.university}, study abroad`}
             />
             <div className="min-h-screen bg-stone-50 pd-20 md:pd-24">

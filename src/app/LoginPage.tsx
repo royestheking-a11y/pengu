@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import { Eye, EyeOff, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Footer } from './components/Footer';
+import SEO from './components/SEO';
 
 import { useGoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 
@@ -141,6 +142,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO
+        title="Sign In | Access Your Premium Academic OS | Pengui.tech"
+        description="Sign in to your Pengui.tech account to access elite academic support, study tools, and scholarship opportunities."
+        url="https://pengui.tech/login"
+      />
       <div className="flex flex-1 flex-col lg:flex-row min-h-[800px]">
         {/* Left Side - Brand / Visual */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#3E2723] text-white p-12 flex-col justify-between relative overflow-hidden">

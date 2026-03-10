@@ -76,7 +76,7 @@ export default function Legal() {
       <SEO
         title={getSEOTitle()}
         description="Read Pengu's legal policies, terms of service, privacy practices, and academic honor code to understand how we protect and serve you."
-        url={`https://pengu.work.gd/legal/${type}`}
+        url={`https://pengui.tech/legal/${type}`}
         keywords="legal, privacy policy, terms of service, honor code, academic integrity, data protection"
       />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">

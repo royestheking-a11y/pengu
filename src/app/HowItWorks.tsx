@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Link } from 'react-router-dom';
+import SEO from './components/SEO';
 
 export default function HowItWorks() {
   const steps = [
@@ -43,6 +44,12 @@ export default function HowItWorks() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Our Process | How Pengu Delivers Excellence | Pengui.tech"
+        description="Learn about our transparent, secure, and professional academic support process. From request submission to expert delivery."
+        url="https://pengui.tech/how-it-works"
+        keywords="academic process, how it works, student support workflow, secure academic help"
+      />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">
         {/* Header */}
         <div className="bg-white border-b border-stone-100 py-20 px-4">

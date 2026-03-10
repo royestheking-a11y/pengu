@@ -104,7 +104,7 @@ export default function InvitationPage() {
             <SEO
                 title={isExpert ? "Join as an Expert | Pengu VIP" : "Premium Academic OS | Pengu VIP"}
                 description={content.subtitle}
-                url={`https://pengu.work.gd/join/${type}`}
+                url={`https://pengui.tech/join/${type}`}
                 keywords={isExpert ? "become an expert, academic tutoring jobs, assignment help gigs, expert network" : "academic tools, study help, scholarship discovery, expert mentorship"}
             />
             {/* Dynamic Mesh Gradient Background */}

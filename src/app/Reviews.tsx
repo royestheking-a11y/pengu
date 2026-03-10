@@ -3,6 +3,7 @@ import { PublicLayout } from './components/Layout';
 import { Star, User, Quote } from 'lucide-react';
 import api from '../lib/api';
 import { ReviewSkeleton } from './components/ReviewSkeleton';
+import SEO from './components/SEO';
 
 export default function Reviews() {
   const [reviews, setReviews] = React.useState<any[]>([]);
@@ -42,6 +43,12 @@ export default function Reviews() {
 
   return (
     <PublicLayout>
+      <SEO
+        title="Student Reviews | Real Success Stories | Pengui.tech"
+        description="Read real reviews from students who have achieved academic success with the help of Pengui.tech experts and AI tools."
+        url="https://pengui.tech/reviews"
+        keywords="student reviews, pengu feedback, academic success stories, tutor ratings"
+      />
       <div className="bg-[#FAFAFA] min-h-screen pb-20">
         <div className="bg-white border-b border-stone-100 py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">

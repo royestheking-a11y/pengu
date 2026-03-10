@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import { Eye, EyeOff, Check, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Footer } from './components/Footer';
+import SEO from './components/SEO';
 import { useGoogleLogin } from '@react-oauth/google';
 import emailjs from '@emailjs/browser';
 import { OTPVerificationModal } from './components/OTPVerificationModal';
@@ -157,6 +158,12 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO
+        title="Join Pengui.tech | Your Career & Academic Accelerator"
+        description="Create your Pengui.tech account today and unlock premium academic support, global scholarship matching, and career acceleration tools."
+        url="https://pengui.tech/signup"
+        keywords="student signup, academic account, scholarship registration, career platform join"
+      />
       <div className="flex flex-1 flex-col lg:flex-row min-h-[800px]">
         {/* Left Side - Brand / Visual */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#5D4037] text-white p-12 flex-col justify-between relative overflow-hidden">

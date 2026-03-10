@@ -107,7 +107,7 @@ export function ScholarshipApplication() {
             <SEO
                 title="Scholarship Application Tracker"
                 description="Track your scholarship applications, manage documents, and coordinate with experts."
-                url="https://pengu.work.gd/student/scholarships"
+                url="https://pengui.tech/student/scholarships"
             />
             <div className="space-y-6">
                 <div className="bg-[#3E2723] text-white p-8 rounded-2xl relative overflow-hidden shadow-lg border border-[#3E2723]/80">

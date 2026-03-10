@@ -123,7 +123,7 @@ export default function MoodSwing() {
             <SEO
                 title="Mood Swing - Your Personal AI Confidant"
                 description="Talk to Pengu, your safe space for emotional support, venting, and personal cheerleading."
-                url="https://pengu.work.gd/student/mood-swing"
+                url="https://pengui.tech/student/mood-swing"
             />
             <div className="max-w-6xl mx-auto h-[calc(100vh-8rem)] flex flex-col md:flex-row gap-4 md:gap-8 pb-4 md:pb-8">
                 {/* Left Side: Avatar & Info - Compact on Mobile */}

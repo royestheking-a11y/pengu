@@ -477,7 +477,7 @@ export default function Pengu3DAvalanche() {
     return (
         <KeyboardControls map={keyboardMap}>
             <div className="fixed inset-0 w-full h-[100dvh] bg-[#81D4FA] overflow-hidden font-['Outfit'] select-none touch-none">
-                <SEO title="Pengu's 3D Avalanche" description="AAA Penguin Runner" url="https://pengu.work.gd/arcade/pengu-3d" />
+                <SEO title="Pengu's 3D Avalanche" description="AAA Penguin Runner" url="https://pengui.tech/games/pengu-3d" />
 
                 {/* UI Overlay (Premium HUD) */}
                 <div className="absolute inset-x-0 top-0 p-3 sm:p-5 md:p-10 z-[100] flex justify-between items-start pointer-events-none">

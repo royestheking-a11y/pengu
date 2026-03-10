@@ -223,7 +223,7 @@ export default function SyllabusSync() {
       <SEO
         title="Syllabus Sync - Auto-Generate Your Deadlines"
         description="Upload your syllabus and let AI automatically extract deadlines, assignments, and exams into your dashboard calendar."
-        url="https://pengu.work.gd/student/syllabus-sync"
+        url="https://pengui.tech/student/syllabus-sync"
       />
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

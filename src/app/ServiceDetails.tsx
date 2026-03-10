@@ -19,14 +19,12 @@ export default function ServiceDetails() {
 
   return (
     <PublicLayout>
-      {service.id === 'assignment-support' && (
-        <SEO
-          title="Structured Assignment & Homework Support"
-          description="Elite assignment assistance with guaranteed deadlines, rubric-matching algorithms, and strict plagiarism checks. Get the grade you need safely."
-          url="https://pengu.work.gd/services/assignment-support"
-          keywords="university assignment support, rubric based editing, plagiarism free academic writing, guaranteed deadline assignment"
-        />
-      )}
+      <SEO
+        title={`${service.title} | Expert Academic Services | Pengui.tech`}
+        description={service.shortDescription}
+        url={`https://pengui.tech/services/${service.id}`}
+        keywords={`${service.title.toLowerCase()}, academic support, university services, expert help`}
+      />
       <div className="bg-[#FAFAFA] min-h-screen">
         {/* Hero Section */}
         <div className="bg-[#3E2723] text-white pt-32 pb-20 relative overflow-hidden">

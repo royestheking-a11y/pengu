@@ -82,7 +82,7 @@ export default function GameZone() {
             <SEO
                 title="Game Zone | Pengu Arena"
                 description="Play premium games, earn coins, and fund your education. 1000 Coins = 100 BDT."
-                url="https://pengu.work.gd/games"
+                url="https://pengui.tech/games"
             />
 
             <div className="max-w-7xl mx-auto space-y-12 pb-20 pt-24 md:pt-32 px-4">

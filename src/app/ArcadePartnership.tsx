@@ -14,7 +14,7 @@ export default function Arcade() {
             <SEO
                 title="Pengu Arcade | Partnership"
                 description="Partner with Pengu and earn 30% commission on referrals."
-                url="https://pengu.work.gd/arcade"
+                url="https://pengui.tech/arcade"
             />
 
             <div className="max-w-6xl mx-auto space-y-8 pb-20">
