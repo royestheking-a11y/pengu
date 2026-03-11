@@ -10,27 +10,25 @@ import {
   Clock,
   TrendingUp,
   AlertCircle,
-  CheckCircle,
   Plus,
-  ArrowRight,
   Coins,
-  Wallet,
-  ArrowUpRight
+  Wallet
 } from 'lucide-react';
 import WithdrawModal from './components/WithdrawModal';
-import { motion } from 'motion/react';
 import { format } from 'date-fns';
 
 export default function StudentDashboard() {
   const { requests, orders, currentUser, skills, isInitialized, withdrawalRequests } = useStore();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
 
+  // Coin and Balance Calculations
   const bdtValue = currentUser?.balance || 0;
+  const coinsValue = (currentUser?.wallet?.coins || 0) * 0.1; // 1,000 coins = 100 BDT
+  const combinedTreasury = bdtValue + coinsValue;
 
   const totalWithdrawn = withdrawalRequests
     .filter(r => r.studentId === currentUser?.id && (r.status === 'PAID' || r.status === 'APPROVED'))
     .reduce((acc, curr) => acc + (curr.amount || 0), 0);
-
 
   const activeRequests = requests
     .filter(r => r.studentId === currentUser?.id && r.status !== 'CONVERTED')
@@ -40,11 +38,11 @@ export default function StudentDashboard() {
     .filter(o => o.studentId === currentUser?.id && o.status !== 'COMPLETED')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  // Filter skills for current user
   const userSkills = skills
     .filter(s => s.userId === currentUser?.id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3);
+  
   const totalSkillsCount = skills.filter(s => s.userId === currentUser?.id).length;
 
   const handleExportCV = () => {
@@ -110,11 +108,16 @@ export default function StudentDashboard() {
                 </Link>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-stone-300 uppercase tracking-widest mb-1">Total Balance</p>
+                <p className="text-[10px] font-bold text-stone-300 uppercase tracking-widest mb-1">Treasury (Inc. Coins)</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-medium text-stone-300">৳</span>
-                  <h3 className="text-3xl font-black">{bdtValue.toLocaleString()}</h3>
+                  <h3 className="text-3xl font-black">{combinedTreasury.toLocaleString()}</h3>
                   <span className="text-sm font-medium text-stone-300">BDT</span>
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-[10px] text-stone-400 font-medium">
+                  <span>৳{bdtValue.toLocaleString()} Cash</span>
+                  <span className="size-1 rounded-full bg-stone-500" />
+                  <span>৳{coinsValue.toLocaleString()} Coin-based</span>
                 </div>
               </div>
               <Button
@@ -305,4 +308,3 @@ export default function StudentDashboard() {
     </DashboardLayout>
   );
 }
-

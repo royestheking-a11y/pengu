@@ -125,18 +125,20 @@ export default function GameZone() {
                                         <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] mb-3">Your Treasury</p>
                                         <div className="space-y-5">
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 text-white">
                                                     <div className="size-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg">
                                                         <Coins className="size-6 text-[#3E2723]" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-2xl font-black font-['Outfit']">{currentUser.wallet?.coins || 0}</p>
-                                                        <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Coins</p>
+                                                        <p className="text-2xl font-black font-['Outfit'] leading-none h-6">{currentUser.wallet?.coins || 0}</p>
+                                                        <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mt-1">
+                                                            Coins (৳{((currentUser.wallet?.coins || 0) * 0.1).toFixed(1)})
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-2xl font-black font-['Outfit'] text-amber-500">৳{currentUser.balance || 0}</p>
-                                                    <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none">Credit</p>
+                                                    <p className="text-2xl font-black font-['Outfit'] text-amber-500 leading-none h-6">৳{currentUser.balance || 0}</p>
+                                                    <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mt-1">Cash Balance</p>
                                                 </div>
                                             </div>
                                             <button
