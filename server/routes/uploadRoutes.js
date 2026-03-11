@@ -8,11 +8,11 @@ const upload = multer({ storage });
 router.post('/', (req, res) => {
     upload.single('file')(req, res, (err) => {
         if (err) {
-            console.error('Upload Error:', err);
+            console.error('🔥 [UPLOAD ROUTE] Detailed Error:', err);
             return res.status(400).json({
                 error: 'Upload failed',
                 message: err.message,
-                code: err.code
+                details: err
             });
         }
         if (!req.file) {

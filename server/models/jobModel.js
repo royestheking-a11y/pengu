@@ -53,9 +53,9 @@ const jobSchema = mongoose.Schema(
             type: String,
             default: 'scraping',
             enum: [
-                'scraping', 'formatting', 'analyzing', 'generating_materials',
-                'awaiting_approval', 'approved', 'rejected', 'pending',
-                'processing', 'completed', 'failed', 'sent', 'interview_ready'
+                'scraping', 'formatting', 'analyzing', 'generating_cv', 'writing_pitch', 'final_review', 'generating_materials',
+                'interview_prep', 'awaiting_approval', 'approved', 'rejected', 'pending',
+                'processing', 'completed', 'failed', 'sent', 'interview_ready', 'ready_to_dispatch'
             ],
         },
         shortlistChance: {

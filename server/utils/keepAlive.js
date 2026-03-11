@@ -10,6 +10,7 @@ const startKeepAlive = () => {
     const healthUrl = `${url}/api/system/health`;
 
     console.log(`--- [KEEP-ALIVE] Initializing ping loop for: ${healthUrl} ---`);
+    console.log(`--- [KEEP-ALIVE] Make sure RENDER_EXTERNAL_URL is set to your production domain if pings fail. ---`);
 
     // Ping every 5 minutes (300,000 ms)
     setInterval(async () => {

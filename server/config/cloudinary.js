@@ -13,11 +13,12 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
-        const isRaw = ['pdf', 'doc', 'docx', 'zip'].includes(file.mimetype.split('/')[1]);
+        console.log(`📡 [CLOUDINARY CONFIG] Processing file: ${file.originalname} (${file.mimetype})`);
+        const isPdf = file.originalname.toLowerCase().endsWith('.pdf') || file.mimetype === 'application/pdf';
         return {
             folder: 'penguproject',
-            resource_type: isRaw ? 'raw' : 'auto',
-            public_id: file.originalname.split('.')[0] + '-' + Date.now(), // Ensure unique filenames
+            resource_type: isPdf ? 'raw' : 'auto',
+            public_id: file.originalname.split('.')[0] + '-' + Date.now(), 
         };
     },
 });

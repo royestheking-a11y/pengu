@@ -83,6 +83,9 @@ app.use('/api/resume-builder', aiLimiter);
 import { initSocket } from './socket.js';
 const io = initSocket(httpServer);
 
+// --- [KEEP-ALIVE] Auto-ping to prevent Render sleep ---
+import startKeepAlive from './utils/keepAlive.js';
+
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
@@ -113,6 +116,7 @@ import gameRoutes from './routes/gameRoutes.js';
 import companionRoutes from './routes/companionRoutes.js';
 import scholarshipRoutes from './routes/scholarshipRoutes.js';
 import jobRoutes from './routes/jobRoutes.js';
+
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/requests', requestRoutes);
@@ -146,7 +150,7 @@ app.use('/api/jobs', jobRoutes);
 // Error Handling Middleware
 app.use((err, req, res, next) => {
     // Respect structured statusCode set by groqClient / geminiCompanion on 429 errors
-    const statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+    const statusCode = err.statusCode || (res.statusCode === 100 ? 500 : res.statusCode);
     res.status(statusCode);
     res.json({
         message: err.message,
@@ -159,4 +163,9 @@ const PORT = process.env.PORT || 5001;
 
 httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    
+    // Start the keep-alive ping loop to prevent Render from sleeping
+    if (process.env.RENDER_EXTERNAL_URL || process.env.NODE_ENV === 'production') {
+        startKeepAlive();
+    }
 });

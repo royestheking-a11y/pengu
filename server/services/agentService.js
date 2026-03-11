@@ -8,8 +8,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Initialize APIs
-console.log(`🔑 [AGENT SERVICE] Initializing with Groq Key exists: ${!!process.env.GROQ_API_KEYS}`);
-const groq = new Groq({ apiKey: (process.env.GROQ_API_KEYS || "").split(',')[0] });
+const groqKeys = (process.env.GROQ_API_KEYS || "").split(',').filter(k => k.trim());
+console.log(`🔑 [AGENT SERVICE] Initializing with ${groqKeys.length} Groq Keys.`);
+
+let currentKeyIndex = 0;
+const getGroqClient = () => {
+    const key = groqKeys[currentKeyIndex];
+    currentKeyIndex = (currentKeyIndex + 1) % groqKeys.length;
+    return new Groq({ apiKey: key });
+};
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Helper to extract JSON from AI response strings
@@ -27,7 +35,7 @@ const extractJson = (text) => {
 };
 
 /**
- * Robust wrapper for AI calls with retry logic and provider fallback.
+ * Robust wrapper for AI calls with retry logic, provider fallback, and key rotation.
  * @param {Object} options - { prompt, systemPrompt, model, responseFormat, providerPreference }
  */
 async function callAIAgent({ prompt, systemPrompt = "", model = "llama-3.3-70b-versatile", responseFormat = "json_object", providerPreference = "groq" }) {
@@ -38,8 +46,9 @@ async function callAIAgent({ prompt, systemPrompt = "", model = "llama-3.3-70b-v
     while (retries <= maxRetries) {
         try {
             if (providerPreference === "groq") {
-                console.log(`🤖 [AI CALL] Using Groq (${model})... (Attempt ${retries + 1})`);
-                const completion = await groq.chat.completions.create({
+                const client = getGroqClient();
+                console.log(`🤖 [AI CALL] Using Groq (Key Index: ${currentKeyIndex}, Model: ${model})... (Attempt ${retries + 1})`);
+                const completion = await client.chat.completions.create({
                     messages: [
                         { role: "system", content: systemPrompt || "You are a helpful AI assistant." },
                         { role: "user", content: prompt }
@@ -61,9 +70,17 @@ async function callAIAgent({ prompt, systemPrompt = "", model = "llama-3.3-70b-v
             console.error(`⚠️ [AI CALL] Attempt ${retries + 1} failed: ${error.message}`);
 
             if (isRateLimit && providerPreference === "groq") {
-                console.warn("🔄 [AI CALL] Groq Rate Limit hit. Falling back to Gemini...");
-                providerPreference = "gemini";
-                continue; // Retry immediately with Gemini
+                console.warn("🔄 [AI CALL] Rate Limit or Error on current key. Rotating to next key and retrying...");
+                // Key is already rotated by getGroqClient, but let's try again
+                if (retries < maxRetries) {
+                    retries++;
+                    continue; 
+                } else {
+                    console.warn("🔄 [AI CALL] All Groq keys exhausted or blocked. Falling back to Gemini...");
+                    providerPreference = "gemini";
+                    retries = 0;
+                    continue;
+                }
             }
 
             if (retries < maxRetries) {
@@ -82,32 +99,37 @@ export const processJobAgents = async (jobId) => {
     console.log(`\n========================================`);
     console.log(`🤖 [AGENT CHAIN] TRIGGERED for Job: ${jobId}`);
     console.log(`========================================`);
-    const job = await Job.findById(jobId);
-    if (!job) {
-        console.error("❌ Job not found in database:", jobId);
-        return;
-    }
-
+    
     try {
-        // --- Agent 0: Data Refiner (Sanitize Inputs) ---
-        console.log("➡️ [DATA REFINER] Checking for placeholders...");
-        if (job.company === "Extracted Company" || job.company === "Demo Corp") {
-            const extracted = await extractMetadataByAI(job);
-            if (extracted.company && extracted.company !== "Extracted Company") {
-                job.company = extracted.company;
-                console.log(`✅ [DATA REFINER] Extracted real company: ${job.company}`);
-            }
+        const job = await Job.findById(jobId);
+        if (!job) {
+            console.error("❌ Job not found in database:", jobId);
+            return;
         }
-        await updateJobStatus(job, 'analyzing', 'CEO', 20);
 
-        // --- Agent 2: CEO (Strategic Fit) ---
+        // --- Agent 0: Data Refiner ---
+        console.log("➡️ [DATA REFINER] Extracting Mission Metadata...");
+        const extracted = await extractMetadataByAI(job);
+        
+        if (extracted.company && (job.company === "Extracted Company" || job.company === "Demo Corp")) {
+            job.company = extracted.company;
+            console.log(`✅ [DATA REFINER] Extracted real company: ${job.company}`);
+        }
+        
+        if (extracted.email && !job.targetEmail) {
+            job.targetEmail = extracted.email;
+            console.log(`✅ [DATA REFINER] Found Recruiter Email: ${job.targetEmail}`);
+        }
+        await updateJobStatus(job, 'analyzing', 'CEO', 15);
+
+        // --- Agent 2: CEO ---
         console.log("➡️ [CEO] Analyzing strategic fit...");
         const ceoAnalysis = await runCEOAnalysis(job);
         job.aiAnalysis.ceo = ceoAnalysis;
         console.log("✅ [CEO] Analysis complete. Fit:", ceoAnalysis.isFit);
-        await updateJobStatus(job, 'analyzing', 'PENGURI', 40);
+        await updateJobStatus(job, 'analyzing', 'PENGURI', 30);
 
-        // --- Agent 3: Penguri (ATS Gatekeeper) ---
+        // --- Agent 3: Penguri ---
         console.log("➡️ [PENGURI] Running ATS Match Simulation...");
         const atsResult = await runPenguriAnalysis(job);
         job.atsScore = atsResult.score;
@@ -120,56 +142,63 @@ export const processJobAgents = async (jobId) => {
             await updateJobStatus(job, 'rejected', 'idle', 100);
             return;
         }
-        await updateJobStatus(job, 'generating_materials', 'RUBI', 60);
-
-        // --- Agent 4: Rubi (Premium CV Tailor) ---
+        // --- Agent 4: Rubi ---
         console.log("➡️ [RUBI] Generating Full Tailored CV...");
+        await updateJobStatus(job, 'generating_cv', 'RUBI', 50);
         const tailoredCv = await runRubiGenerator(job);
         job.tailoredCvData = tailoredCv;
         job.tailoredCvHighlights = tailoredCv.highlights || [];
         console.log("✅ [RUBI] CV tailoring complete.");
-        await updateJobStatus(job, 'generating_materials', 'PANDU', 80);
 
-        // --- Agent 5: Pandu (Premium Pitch Writer) ---
+        // --- Agent 5: Pandu ---
         console.log("➡️ [PANDU] Writing premium pitch materials...");
+        await updateJobStatus(job, 'writing_pitch', 'PANDU', 70);
         const materials = await runPanduGenerator(job);
         job.draftedEmail = materials.email;
         job.aiAnalysis.coverLetter = materials.coverLetter;
         console.log("✅ [PANDU] Premium pitch materials generated.");
-        await updateJobStatus(job, 'awaiting_approval', 'CHAIRMAN', 92);
 
-        // --- Agent 6: Chairman (Final Review) ---
+        // --- Agent 6: Chairman ---
         console.log("➡️ [CHAIRMAN] Running final AI review...");
+        await updateJobStatus(job, 'final_review', 'CHAIRMAN', 85);
         const chairmanReview = await runChairmanReview(job);
         job.aiAnalysis.chairman = chairmanReview;
+        console.log("✅ [CHAIRMAN] Review complete.");
 
         if (chairmanReview.approved) {
-            console.log("🚀 [CHAIRMAN] Approved! Preparing interview kit...");
-            try {
-                const interviewKit = await runInterviewPrepAgent(job);
-                job.aiAnalysis.interviewPrep = interviewKit;
-                job.status = 'interview_ready';
-                console.log(`✅ [RuBI HR] Interview kit generated with ${interviewKit.length} questions.`);
-            } catch (prepError) {
-                console.warn("⚠️ [RuBI HR] Interview prep failed.", prepError.message);
-                job.status = 'sent';
-                await updateJobStatus(job, 'sent', 'idle', 100);
+            console.log("🚀 [CHAIRMAN] Approved!");
+            
+            // --- NEW: Chairman Automated Dispatch Check ---
+            if (job.targetEmail && job.targetEmail.includes('@')) {
+                console.log(`✉️ [CHAIRMAN] Target email found: ${job.targetEmail}. Initiating Auto-Dispatch Chain...`);
+                // Mark as ready_to_dispatch and keep CHAIRMAN active for the 3D visualizer
+                await updateJobStatus(job, 'ready_to_dispatch', 'CHAIRMAN', 100);
+            } else {
+                console.log("ℹ️ [CHAIRMAN] No target email found. Standing by for Boss manual entry.");
+                await updateJobStatus(job, 'awaiting_approval', 'idle', 100);
             }
         } else {
-            console.warn("🛑 [CHAIRMAN] rejected or needs fix. Stopping chain.");
+            console.warn("🛑 [CHAIRMAN] rejected or needs fix.");
+            await updateJobStatus(job, 'failed', 'idle', 100);
         }
 
-        await updateJobStatus(job, job.status, 'idle', 100);
         console.log(`🎯 [AGENT CHAIN] Success. Final Status: ${job.status}`);
 
     } catch (error) {
         console.error("❌ [AGENT CHAIN] FATAL ERROR CAUGHT:");
         console.error("Message:", error.message);
-        job.status = 'failed';
-        job.aiAnalysis = { ...job.aiAnalysis, error: error.message };
-        job.markModified('aiAnalysis');
-        await job.save();
-        console.log("💾 [AGENT CHAIN] Failure status saved to DB.");
+        
+        if (job) {
+            try {
+                await updateJobStatus(job, 'failed', 'idle', 0);
+                job.aiAnalysis = { ...job.aiAnalysis, error: error.message };
+                job.markModified('aiAnalysis');
+                await job.save();
+                console.log("💾 [AGENT CHAIN] Failure status saved to DB.");
+            } catch (saveError) {
+                console.error("❌ Failed to save failure status:", saveError.message);
+            }
+        }
     }
 };
 
@@ -217,23 +246,37 @@ async function runRubiGenerator(job) {
 }
 
 async function runPanduGenerator(job) {
-    const prompt = `Write a MASTERFUL Application Email and a Sophisticated Cover Letter for ${userProfile.name}.
-    Target Job: ${job.role} at ${job.company}
-    Profile: ${JSON.stringify(userProfile)}
+    const prompt = `Write a MASTERFUL, Sophisticated Application Email and a Detailed Cover Letter for ${userProfile.name}.
+    
+    Target Company: ${job.company}
+    Target Role: ${job.role}
+    Job Description: ${job.description.substring(0, 4000)}
+    User Profile: ${JSON.stringify(userProfile)}
+    
+    CRITICAL INSTRUCTIONS:
+    1. STRUCTURE (Cover Letter): 4-5 paragraphs. Use strictly TWO newlines (\\n\\n) between EVERY paragraph. 
+       - Start with: "Dear Hiring Manager at ${job.company}," followed by TWO newlines.
+    2. STRUCTURE (Email): 2-3 concise paragraphs. Use strictly TWO newlines (\\n\\n) between paragraphs.
+       - Start with: "Dear Hiring Team," followed by TWO newlines.
+    3. NO SIGNATURE: Do NOT include any signature, "Sincerely", or "Regards" at the end. Just the body content.
+    4. DETAILS: Incorporate specific requirements from the Job Description into the narrative.
+    5. NO PLACEHOLDERS: NEVER use [Company] or [Role].
     
     Return strictly as a JSON object: { 
-      "coverLetter": "Body text starting DIRECTLY with 'Dear'...", 
-      "email": "Email starting with 'Dear'. End with professional signature." 
+      "coverLetter": "Full body text ONLY.", 
+      "email": "Full body text ONLY." 
     }`;
 
-    const systemPrompt = `You are PANDU (Elite Executive Copywriter). STYLE: Olivia Wilson (Elegant, Minimalist). 
-    CRITICAL: NO placeholders. Use "${job.company}". END email with a full signature block including website and social links.
-    MANDATORY JSON FORMAT. Do not include any text outside the JSON object.`;
+    const systemPrompt = `You are PANDU (Elite Executive Copywriter). STYLE: High-conversion, professional excellence.
+    Your response must be valid JSON. End the text immediately after the last paragraph of the body.`;
 
     const data = await callAIAgent({ prompt, systemPrompt, model: "llama-3.3-70b-versatile" });
+    
+    const signature = `\n\nRespectfully,\n\n${userProfile.name}\n${userProfile.title}\nPhone: ${userProfile.contact.phone}\nPortfolio: ${userProfile.contact.website}\nLinkedIn: ${userProfile.contact.linkedin}`;
+
     return {
-        coverLetter: cleanAIText(data.coverLetter, job.company),
-        email: cleanAIText(data.email, job.company)
+        coverLetter: cleanAIText(data.coverLetter, job.company) + signature,
+        email: cleanAIText(data.email, job.company) + signature
     };
 }
 
