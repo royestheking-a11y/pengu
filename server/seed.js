@@ -19,7 +19,12 @@ import SyllabusEvent from './models/syllabusModel.js';
 import ExpertApplication from './models/expertAppModel.js';
 import SystemSettings from './models/systemModel.js';
 
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 connectDB();
 
 const importData = async () => {
@@ -45,6 +50,7 @@ const importData = async () => {
         // ... (rest of user creation)
         // --- 1. Users ---
         const users = await User.create([
+            { name: 'Boss', email: 'boss@pengucopilot.ai', password: 'password123', role: 'admin', status: 'active', avatar: 'https://i.pravatar.cc/150?u=boss' },
             { name: 'Admin One', email: 'admin@pengu.com', password: 'password123', role: 'admin', status: 'active', avatar: 'https://i.pravatar.cc/150?u=admin' },
             { name: 'John Student', email: 'student@pengu.com', password: 'password123', role: 'student', status: 'active', avatar: 'https://i.pravatar.cc/150?u=john' },
             { name: 'Alice Smith', email: 'alice@student.com', password: 'password123', role: 'student', status: 'active', avatar: 'https://i.pravatar.cc/150?u=alice' },
@@ -70,7 +76,7 @@ const importData = async () => {
                 online: true,
                 rating: 4.9,
                 completedOrders: 145,
-                earnings: 'TK 150000',
+                earnings: 150000,
                 balance: 25000,
                 payoutMethods: [{ type: 'Bank', accountName: 'Alan Grant', accountNumber: '1234567890', bankName: 'Standard Chartered', branchName: 'Gulshan', isPrimary: true }]
             },
@@ -81,7 +87,7 @@ const importData = async () => {
                 online: false,
                 rating: 5.0,
                 completedOrders: 89,
-                earnings: 'TK 95000',
+                earnings: 95000,
                 balance: 12000,
                 payoutMethods: [{ type: 'bKash', accountName: 'Ellie Sattler', accountNumber: '01700000000', isPrimary: true }]
             },
@@ -92,7 +98,7 @@ const importData = async () => {
                 online: true,
                 rating: 4.7,
                 completedOrders: 210,
-                earnings: 'TK 220000',
+                earnings: 220000,
                 balance: 45000,
                 payoutMethods: []
             }
@@ -115,6 +121,7 @@ const importData = async () => {
             expertId: expert1._id, // User ID reference
             topic: 'Impact of AI on Education',
             serviceType: 'Thesis',
+            amount: 5000,
             status: 'COMPLETED',
             progress: 100,
             milestones: [
@@ -126,11 +133,12 @@ const importData = async () => {
 
         // Order 2: In Progress [Ellie]
         const order2 = await Order.create({
-            requestId: 'req_mock_2',
+            requestId: reqs[1]._id,
             studentId: student2._id,
             expertId: expert2._id,
             topic: 'Plant Biology Research',
             serviceType: 'Research',
+            amount: 3000,
             status: 'IN_PROGRESS',
             progress: 50,
             milestones: [
@@ -141,11 +149,12 @@ const importData = async () => {
 
         // Order 3: Review / QC [Ian] - For AdminQuality testing
         const order3 = await Order.create({
-            requestId: 'req_mock_3',
+            requestId: reqs[2]._id,
             studentId: student1._id,
             expertId: expert3._id,
             topic: 'Chaos Theory Simulation',
             serviceType: 'Coding',
+            amount: 8000,
             status: 'Review',
             progress: 80,
             milestones: [
@@ -161,10 +170,11 @@ const importData = async () => {
 
         // Order 4: New / Unassigned
         const order4 = await Order.create({
-            requestId: 'req_mock_4',
+            requestId: reqs[0]._id,
             studentId: student2._id,
             topic: 'History Essay',
             serviceType: 'Essay',
+            amount: 1500,
             status: 'PAID_CONFIRMED',
             progress: 0,
             milestones: [{ title: 'Full Essay', status: 'PENDING', dueDate: new Date(Date.now() + 86400000 * 4) }]
@@ -219,11 +229,11 @@ const importData = async () => {
             }
         ]);
 
-        await Course.create([{ name: 'CSE 101' }, { name: 'MAT 201' }, { name: 'ENG 102' }, { name: 'PHY 101' }]);
+        await Course.create([{ name: 'CSE 101', userId: student1._id }, { name: 'MAT 201', userId: student1._id }, { name: 'ENG 102', userId: student1._id }, { name: 'PHY 101', userId: student1._id }]);
 
         await SyllabusEvent.create([
-            { title: 'Midterm Exam', date: new Date(Date.now() + 86400000 * 10), type: 'Exam', course: 'CSE 101', weight: '30%' },
-            { title: 'Lab Final', date: new Date(Date.now() + 86400000 * 15), type: 'Lab', course: 'PHY 101', weight: '20%' }
+            { title: 'Midterm Exam', date: new Date(Date.now() + 86400000 * 10), type: 'Exam', course: 'CSE 101', weight: '30%', userId: student1._id },
+            { title: 'Lab Final', date: new Date(Date.now() + 86400000 * 15), type: 'Lab', course: 'PHY 101', weight: '20%', userId: student1._id }
         ]);
 
         console.log('Creating Notifications...');

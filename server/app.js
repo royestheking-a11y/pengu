@@ -23,8 +23,8 @@ const app = express();
 const httpServer = createServer(app);
 console.log('HTTP Server instance created');
 
-// Middleware
-const allowedOrigins = [
+// Middleware: CORS Configuration
+const rawOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
@@ -37,15 +37,21 @@ const allowedOrigins = [
     "https://www.pengui.tech",
     "chrome-extension://lmneidfkcpfhghckmojlklfecekbdoik",
     process.env.FRONTEND_URL
-].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
+];
 
-console.log('--- [CORS] Whitelist:', allowedOrigins);
+// Normalize whitelist: split comma-separated strings, trim, and remove empty entries
+const allowedOrigins = rawOrigins
+    .flatMap(o => o ? o.split(',').map(s => s.trim()) : [])
+    .filter(Boolean);
+
+console.log('--- [CORS] Initialized Whitelist:', allowedOrigins);
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps)
+        // Allow requests with no origin (like mobile apps, curl, or server-to-server)
         if (!origin) return callback(null, true);
 
+        // Check if origin is in whitelist or is a pengu-related vercel preview
         const isAllowed = allowedOrigins.includes(origin) ||
             (origin.endsWith('.vercel.app') && origin.includes('pengu'));
 
@@ -53,11 +59,14 @@ const corsOptions = {
             callback(null, true);
         } else {
             console.warn(`--- [CORS] Blocked Origin: ${origin}`);
-            callback(null, false); // Don't throw error, just don't allow
+            // Calling with null, false tells cors middleware to NOT set the Access-Control-Allow-Origin header
+            callback(null, false);
         }
     },
     credentials: true,
-    optionsSuccessStatus: 200 // Response for preflight success
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));

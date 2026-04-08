@@ -58,9 +58,19 @@ async function callAIAgent({ prompt, systemPrompt = "", model = "llama-3.3-70b-v
                 });
                 return extractJson(completion.choices[0].message.content);
             } else {
-                console.log(`🤖 [AI CALL] Using Gemini 1.5 Flash... (Attempt ${retries + 1})`);
-                const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const result = await geminiModel.generateContent(systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt);
+                console.log(`🤖 [AI CALL] Using Gemini Fallback... (Attempt ${retries + 1})`);
+                const geminiModel = genAI.getGenerativeModel({ 
+                    model: "gemini-1.5-flash", // Simplified name
+                    systemInstruction: systemPrompt || "You are a helpful AI assistant."
+                });
+                
+                const result = await geminiModel.generateContent({
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: responseFormat === "json_object" ? "application/json" : "text/plain",
+                    }
+                });
+                
                 return extractJson(result.response.text());
             }
         } catch (error) {
@@ -100,8 +110,9 @@ export const processJobAgents = async (jobId) => {
     console.log(`🤖 [AGENT CHAIN] TRIGGERED for Job: ${jobId}`);
     console.log(`========================================`);
     
+    let job = null;
     try {
-        const job = await Job.findById(jobId);
+        job = await Job.findById(jobId);
         if (!job) {
             console.error("❌ Job not found in database:", jobId);
             return;

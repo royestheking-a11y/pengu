@@ -9,7 +9,7 @@ function logSync(msg) {
 
 export const initSocket = (httpServer) => {
     logSync('Initializing Socket.io...');
-    const allowedOrigins = [
+    const rawOrigins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
@@ -21,7 +21,11 @@ export const initSocket = (httpServer) => {
         "https://pengui.tech",
         "https://www.pengui.tech",
         process.env.FRONTEND_URL
-    ].flatMap(o => o ? o.split(',').map(s => s.trim()) : []);
+    ];
+
+    const allowedOrigins = rawOrigins
+        .flatMap(o => o ? o.split(',').map(s => s.trim()) : [])
+        .filter(Boolean);
 
     logSync(`Whitelist: ${allowedOrigins.join(', ')}`);
 

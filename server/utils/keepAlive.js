@@ -6,7 +6,8 @@ import axios from 'axios';
  * to prevent the service from sleeping due to inactivity.
  */
 const startKeepAlive = () => {
-    const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5001}`;
+    const url = process.env.RENDER_EXTERNAL_URL || 
+                (process.env.NODE_ENV === 'production' ? 'https://pengu-api.onrender.com' : `http://localhost:${process.env.PORT || 5001}`);
     const healthUrl = `${url}/api/system/health`;
 
     console.log(`--- [KEEP-ALIVE] Initializing ping loop for: ${healthUrl} ---`);
